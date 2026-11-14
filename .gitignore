@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Node / frontend
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.vite/
+.vercel/
+coverage/
+
+# Build outputs
+dist/
+build/
+
+# Ollama / model weights / local retrieval indexes
+.ollama/
+models/
+*.gguf
+*.ggml
+*.safetensors
+.chroma/
+chroma_db/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Large raw data: commit provenance and small curated text instead
+data/raw/
+data/downloads/
+
+# OS / runtime
+.DS_Store
+*.log
