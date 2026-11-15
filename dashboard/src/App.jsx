@@ -7,6 +7,7 @@ import MasterStatus from "./components/MasterStatus.jsx";
 import { SCENARIOS, STALE_AFTER_MS, useSource } from "./lib/useSource.js";
 import { useThermal } from "./lib/useThermal.js";
 import { useAdvisory } from "./lib/useAdvisory.js";
+import { useCrewAudio } from "./lib/crewAudio.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 const SCENARIO_NOTE = {
@@ -53,6 +54,9 @@ export default function App() {
   const ageMs = lastRxAt ? Math.max(0, now - lastRxAt) : null;
   const stale = source === "live" && (state === "disconnected" || state === "error" || (ageMs != null && ageMs > STALE_AFTER_MS));
   const alarm = isAlarm(frame);
+  // Sound only for an alarm in data that is moving: a single latched old sample (the backend's last status
+  // from an earlier session) must not set off the siren when the page opens.
+  const audio = useCrewAudio({ alarm: alarm && !stale && frames.length > 1, advisory, live: source === "live" });
   const clock = new Date(now);
 
   const link = stale ? { cls: "caution", text: "Stale" }
@@ -105,6 +109,9 @@ export default function App() {
             </>
           )}
           <button type="button" onClick={restart}>Restart session</button>
+          <button type="button" className={`sound-btn${audio.enabled ? " on" : ""}`} aria-pressed={audio.enabled} onClick={audio.toggle}
+            title="Alarm siren and spoken Gemma advisories">{audio.enabled ? "Sound on" : "Sound off"}</button>
+          {audio.sounding && <button type="button" className="ack-btn" onClick={audio.acknowledge}>Silence alarm</button>}
         </div>
       </header>
 
@@ -118,7 +125,7 @@ export default function App() {
       <MasterStatus frames={frames} stale={stale} ageS={ageMs != null ? ageMs / 1000 : null} />
 
       <main className="layout">
-        <div className="area-advisory"><GemmaPanel advisory={advisory} live={source === "live"} status={frame?.stage1_detector.status} stage1Alarm={alarm} now={now} /></div>
+        <div className="area-advisory"><GemmaPanel advisory={advisory} live={source === "live"} status={frame?.stage1_detector.status} stage1Alarm={alarm} now={now} audio={audio} /></div>
 
         <section className="panel area-trends" aria-labelledby="trends-h">
           <div className="panel-head">

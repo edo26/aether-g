@@ -323,3 +323,14 @@ button:active { box-shadow: var(--shadow-inset); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* Crew audio: sound toggle, alarm acknowledge and read-aloud controls */
+.sound-btn.on { color: var(--text); }
+.sound-btn:not(.on) { color: var(--text-3); }
+.ack-btn { color: #fff; background: linear-gradient(180deg, #d9463b, #a82d25); animation: ack-pulse 1s ease-in-out infinite; }
+.ack-btn:hover { background: linear-gradient(180deg, #e5554a, #b8352c); }
+@keyframes ack-pulse { 50% { box-shadow: 0 0 0 4px rgba(239, 83, 80, 0.35); } }
+.adv-head-right { display: flex; align-items: center; gap: 8px; }
+.speak-btn { padding: 3px 10px; font-size: 12px; font-family: var(--f-label); letter-spacing: 0.04em; }
+.speak-btn.is-speaking { color: #fff; box-shadow: 0 0 0 2px rgba(80, 160, 255, 0.45); }
+@media (prefers-reduced-motion: reduce) { .ack-btn { animation: none; } }

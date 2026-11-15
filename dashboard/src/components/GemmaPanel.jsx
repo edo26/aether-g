@@ -24,7 +24,7 @@ function Steps({ steps, caret = false }) {
   );
 }
 
-export default function GemmaPanel({ advisory, live, status, stage1Alarm, now }) {
+export default function GemmaPanel({ advisory, live, status, stage1Alarm, now, audio }) {
   const { current, run, disclaimer, connected } = advisory;
   const llm = isLlm(current);
 
@@ -38,7 +38,16 @@ export default function GemmaPanel({ advisory, live, status, stage1Alarm, now })
     <section className={`panel advisory${stage1Alarm ? " is-alarm" : ""}`} aria-labelledby="adv-h" aria-busy={Boolean(run)}>
       <div className="panel-head">
         <h2 id="adv-h">Crew advisory</h2>
-        {chip}
+        <div className="adv-head-right">
+          {live && current && !run && audio && (
+            <button type="button" className={`speak-btn${audio.speaking ? " is-speaking" : ""}`}
+              onClick={() => (audio.speaking ? audio.stopSpeaking() : audio.speak(current))}
+              aria-label={audio.speaking ? "Stop reading the advisory" : "Read the advisory aloud"}>
+              {audio.speaking ? "■ Stop" : "▶ Read aloud"}
+            </button>
+          )}
+          {chip}
+        </div>
       </div>
 
       {live && run ? (() => {
