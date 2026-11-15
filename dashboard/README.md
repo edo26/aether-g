@@ -2,7 +2,7 @@
 
 **Owner: Edo (Anggy Edo Prasetya)** — frontend applications, demo experience, and pitch.
 
-Planned stack: **Vite + React**. This scaffold contains the panel and integration brief; the application has not been created yet.
+Planned stack: **Vite + React**. This scaffold contains the panel and integration brief; the HUD is implemented (see *Run* below).
 
 ## Four panels
 
@@ -30,3 +30,18 @@ For the Wi-Fi-off rehearsal, run a locally built dashboard with the local backen
 3. Add scenario selection, source labels, citations, clear status text, and stale-data handling.
 4. Rehearse dust rejection, smoldering, and offline operation using the [demo script](../docs/demo-script.md).
 5. Measure trigger-to-guidance latency with Fachri, then publish the frontend on Vercel and record its real URL in the root README.
+
+## Run
+
+```bash
+cd dashboard
+npm install
+npm run dev       # http://localhost:5173, default: captured replay, scenario `airgapped` (Mode 2)
+npm test          # contract validator + heatmap tests against the captured fixtures
+npm run build     # static bundle in dist/ (Vercel-ready, no secrets or model weights)
+npm run fixtures  # re-capture public/fixtures/*.jsonl from simulator/simulator.py (seeded, synthetic)
+```
+
+**Sources.** *Captured replay* plays `public/fixtures/<scenario>.jsonl` at 500 ms (240 frames each, validated against the shared contract). *Live backend* polls `GET $VITE_API_BASE/status` (default `http://localhost:8000`); it accepts either a bare frame or `{ "latest": frame }`, validates every frame, and clears history on a timestamp reset or mode change. **The `/status` shape is an assumption until agreed with Fachri (#1).** The mode badge is always read from the frame. The Gemma panel shows no advice until an advisory transport exists (#6/#7).
+
+**Heri's data (#8).** To consume his fixtures, drop contract-valid JSONL into `public/fixtures/` (replacing or adding a scenario) and run `npm test`; invalid frames are rejected with a line number.
