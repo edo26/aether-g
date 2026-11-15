@@ -266,8 +266,11 @@ button:active { box-shadow: var(--shadow-inset); }
 .steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 11px; background: var(--well); box-shadow: var(--shadow-inset); }
 .step-n { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surface-hi); color: var(--info); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 2px 4px rgba(0, 0, 0, 0.4); font-size: 13px; }
 .adv-run, .adv-final { display: grid; gap: 10px; }
-.adv-stream { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--well); box-shadow: var(--shadow-inset); }
-.adv-stream p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-2); white-space: pre-wrap; word-break: break-word; }
+.adv-prelim { display: grid; gap: 4px; padding: 10px 12px; border-radius: 11px; background: var(--well); box-shadow: var(--shadow-inset); }
+.adv-prelim p { margin: 0; font-size: 13px; color: var(--text-2); }
+.adv-waiting { margin: 0; color: var(--text-3); font-size: 14px; }
+.steps li { animation: step-in 220ms ease-out; }
+@keyframes step-in { from { opacity: 0; transform: translateY(4px); } }
 .caret { display: inline-block; width: 7px; height: 14px; margin-left: 2px; vertical-align: -2px; background: var(--info); }
 @media (prefers-reduced-motion: no-preference) { .caret { animation: caret 1s steps(1) infinite; } }
 @keyframes caret { 50% { opacity: 0; } }

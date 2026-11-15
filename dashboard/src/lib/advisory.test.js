@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { advisoryReducer, initialAdvisory, isLlm, plain } from "./advisory.js";
+import { advisoryReducer, initialAdvisory, isLlm, parseStreaming, plain } from "./advisory.js";
 
 const CID = "AVIONICS_BAY_B2";
 const adv = (id, extra = {}) => ({ id, compartment_id: CID, trigger: "status_change", status: "SMOLDERING_ANOMALY",
@@ -52,4 +52,14 @@ test("helpers", () => {
   assert.equal(plain("AVIONICS\\_BAY\\_B2"), "AVIONICS_BAY_B2");
   assert.ok(isLlm(adv(1)));
   assert.ok(!isLlm(adv(1, { model: "deterministic", fallback: true })));
+});
+
+test("streaming text fills warning and steps in place, matching the final layout", () => {
+  assert.deepEqual(parseStreaming("WARN"), { warning: "", steps: [] });
+  assert.deepEqual(parseStreaming("WARNING: CO is 27 ppm in AVIONICS\\_BAY"), { warning: "CO is 27 ppm in AVIONICS_BAY", steps: [] });
+  const mid = parseStreaming("WARNING: CO is 27 ppm.\nWHY: Saffire VI saw CO rise first [F1].\n1. Alert the crew.\n2. Conf");
+  assert.equal(mid.warning, "CO is 27 ppm. Saffire VI saw CO rise first.");
+  assert.deepEqual(mid.steps, ["Alert the crew.", "Conf"]);
+  const done = parseStreaming("WARNING: x.\n1. a\n2. b\n3. c\nSOURCES: F1");
+  assert.deepEqual(done.steps, ["a", "b", "c"]);
 });

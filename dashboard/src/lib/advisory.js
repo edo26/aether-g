@@ -54,3 +54,29 @@ export const TRIGGER_LABEL = {
 };
 
 export const isLlm = (a) => a && !a.fallback && a.model && a.model !== "deterministic";
+
+const TAG = /\[\s*F\d+\s*\]/gi;
+
+/**
+ * Parses Gemma's text while it is still streaming, so the panel can fill the final layout in place.
+ * Mirrors the backend parser: the WHY sentence is appended to the warning without its [F#] tag.
+ * Returns { warning, steps } with partial lines included; SOURCES is ignored (citations come at the end).
+ */
+export function parseStreaming(text) {
+  let warning = "", why = "";
+  const steps = [];
+  for (const raw of (text ?? "").split("\n")) {
+    const line = raw.trim();
+    let m;
+    if ((m = /^WARNING\s*:\s*(.*)$/i.exec(line))) warning = m[1];
+    else if ((m = /^WHY\s*:\s*(.*)$/i.exec(line))) why = m[1];
+    else if ((m = /^([1-9])[.)]\s*(.*)$/.exec(line))) steps[Number(m[1]) - 1] = m[2];
+  }
+  const reason = plain(why.replace(TAG, "")).trim().replace(/[\s.]+$/, "");
+  const whyDone = /(\]|\.)\s*$/.test(why); // the backend adds the closing period once the sentence is complete
+  const shown = plain(warning).trim();
+  return {
+    warning: reason ? `${shown} ${reason}${whyDone ? "." : ""}` : shown,
+    steps: steps.filter((s) => s != null).map((s) => plain(s)),
+  };
+}

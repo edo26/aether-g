@@ -1,6 +1,6 @@
 // Crew advisory: the latest advisory from the backend, streamed live from the local Gemma model.
 // The Stage-1 status above never waits for this panel, and nothing here is invented client-side.
-import { TRIGGER_LABEL, isLlm, plain } from "../lib/advisory.js";
+import { TRIGGER_LABEL, isLlm, parseStreaming, plain } from "../lib/advisory.js";
 
 const STATUS_WORD = { SMOLDERING_ANOMALY: "smoldering anomaly", NOMINAL: "nominal" };
 
@@ -11,11 +11,15 @@ function ago(iso, now) {
   return s < 60 ? `${s} s ago` : s < 3600 ? `${Math.round(s / 60)} min ago` : `${Math.round(s / 3600)} h ago`;
 }
 
-function Steps({ steps }) {
+const Caret = () => <span className="caret" aria-hidden="true" />;
+
+function Steps({ steps, caret = false }) {
   if (!steps?.length) return null;
   return (
     <ol className="steps">
-      {steps.map((s, i) => <li key={i}><span className="step-n mono">{i + 1}</span><span>{plain(s)}</span></li>)}
+      {steps.map((s, i) => (
+        <li key={i}><span className="step-n mono">{i + 1}</span><span>{plain(s)}{caret && i === steps.length - 1 && <Caret />}</span></li>
+      ))}
     </ol>
   );
 }
@@ -26,7 +30,7 @@ export default function GemmaPanel({ advisory, live, status, stage1Alarm, now })
 
   let chip;
   if (!live) chip = <span className="chip muted">Replay</span>;
-  else if (run) chip = <span className="chip dot info">Generating</span>;
+  else if (run) chip = <span className="chip dot info">{run.llm ? "Gemma is writing" : "Generating"}</span>;
   else if (current) chip = llm ? <span className="chip info">Gemma · local</span> : <span className="chip caution">Rule-based fallback</span>;
   else chip = <span className={`chip dot ${connected ? "ok" : "muted"}`}>{connected ? "Listening" : "Connecting"}</span>;
 
@@ -37,23 +41,34 @@ export default function GemmaPanel({ advisory, live, status, stage1Alarm, now })
         {chip}
       </div>
 
-      {live && run ? (
-        <div className="adv-run" aria-live="polite">
-          {run.preliminary && (
-            <>
-              <span className="eyebrow">Preliminary · rule-based, shown at once</span>
-              <p className="adv-warning">{plain(run.preliminary.warning)}</p>
-              <Steps steps={run.preliminary.steps} />
-            </>
-          )}
-          {run.llm && (
-            <div className="adv-stream">
-              <span className="eyebrow">Gemma is writing</span>
-              <p className="mono">{plain(run.text)}<span className="caret" aria-hidden="true" /></p>
-            </div>
-          )}
-        </div>
-      ) : live && current ? (
+      {live && run ? (() => {
+        // Gemma's text fills the final layout in place (same warning + steps the final advisory shows), so
+        // nothing the crew is reading disappears when it completes. The rule-based preliminary sits below
+        // and is the only thing removed at the end.
+        const g = run.llm ? parseStreaming(run.text) : null;
+        const started = g && (g.warning || g.steps.length);
+        return (
+          <div className="adv-run">
+            {run.llm && (
+              <div className="adv-final">
+                {started ? (
+                  <>
+                    <p className="adv-warning">{g.warning}{g.steps.length === 0 && <Caret />}</p>
+                    <Steps steps={g.steps} caret />
+                  </>
+                ) : <p className="adv-waiting">Reading the last 60 s of sensor data<Caret /></p>}
+              </div>
+            )}
+            {run.preliminary && (
+              <div className={run.llm ? "adv-prelim" : "adv-final"}>
+                <span className="eyebrow">{run.llm ? "Rule-based summary · shown while Gemma writes" : "Rule-based advisory"}</span>
+                <p className={run.llm ? "" : "adv-warning"}>{plain(run.preliminary.warning)}</p>
+                {!run.llm && <Steps steps={run.preliminary.steps} />}
+              </div>
+            )}
+          </div>
+        );
+      })() : live && current ? (
         <div className="adv-final">
           <p className="adv-warning">{plain(current.warning)}</p>
           <Steps steps={current.steps} />
