@@ -76,7 +76,12 @@ class ParseError(ValueError):
 
 _SOURCES = re.compile(r"^\s*SOURCES?\s*:\s*(.*)$", re.I | re.M)
 _WARNING = re.compile(r"^\s*WARNING\s*:\s*(.+)$", re.I | re.M)
-_ANSWER = re.compile(r"^\s*ANSWER\s*:\s*(.+?)(?=^\s*SOURCES?\s*:|\Z)", re.I | re.M | re.S)
+_ANSWER = re.compile(r"^\s*ANSWER\s*:\s*(.+?)(?=\s*\bSOURCES?\s*:|\Z)", re.I | re.M | re.S)
+_MD_ESCAPE = re.compile(r"\\([_*`#\[\]()])")  # models sometimes escape Markdown: AVIONICS\_BAY -> AVIONICS_BAY
+
+
+def _clean(text: str) -> str:
+    return _MD_ESCAPE.sub(r"\1", text).strip()
 _STEP = re.compile(r"^\s*([1-9])[.)]\s*(.+?)\s*$", re.M)
 
 
@@ -102,11 +107,11 @@ def parse_advisory(text: str, facts: list[Fact]) -> tuple[str, list[str], list[F
     steps = [s for _, s in numbered]
     if not w or [n for n, _ in numbered] != ["1", "2", "3"]:
         raise ParseError(f"expected WARNING and exactly 3 steps, got warning={bool(w)} steps={[n for n, _ in numbered]}")
-    return w.group(1).strip(), steps, _citations(text, tags)
+    return _clean(w.group(1)), [_clean(x) for x in steps], _citations(text, tags)
 
 
 def parse_answer(text: str, facts: list[Fact]) -> tuple[str, list[Fact]]:
     m = _ANSWER.search(text)
     if not m or not m.group(1).strip():
         raise ParseError("expected ANSWER")
-    return " ".join(m.group(1).split()), _citations(text, alias_map(facts))
+    return _clean(" ".join(m.group(1).split())), _citations(text, alias_map(facts))
