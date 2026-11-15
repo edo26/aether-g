@@ -1,0 +1,481 @@
+<title>Alur AETHER-G</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column; diagrams break wider inside their own horizontal scrollers. */
+:root {
+  --bg: #f2f4f6;
+  --panel: #ffffff;
+  --fg: #18212b;
+  --muted: #5a6673;
+  --line: #b9c2cc;
+  --zone: #e6eaee;
+  --alarm: #c2410c;
+  --alarm-soft: #fbe6da;
+  --llm: #0f766e;
+  --llm-soft: #d6efec;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c; --panel: #1a222b; --fg: #e3e8ee; --muted: #9aa6b2; --line: #3d4955; --zone: #161d24;
+    --alarm: #ff8f52; --alarm-soft: #3b2418; --llm: #4fd1c1; --llm-soft: #14302d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c; --panel: #1a222b; --fg: #e3e8ee; --muted: #9aa6b2; --line: #3d4955; --zone: #161d24;
+  --alarm: #ff8f52; --alarm-soft: #3b2418; --llm: #4fd1c1; --llm-soft: #14302d; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 56px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 40px; }
+header { display: grid; gap: 8px; max-width: 70ch; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--f-display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(30px, 5vw, 44px); }
+h2 { font-size: 24px; }
+p { margin: 0; max-width: 68ch; }
+.lede { color: var(--muted); font-size: 17px; }
+section { display: grid; gap: 14px; }
+figure { margin: 0; display: grid; gap: 12px; }
+.scroller { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+.scroller svg { display: block; width: 100%; min-width: 860px; height: auto; }
+figcaption { color: var(--muted); font-size: 14px; max-width: 75ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 26px; height: 0; border-top: 2.5px solid currentColor; display: inline-block; }
+.sw.alarm { color: var(--alarm); } .sw.llm { color: var(--llm); } .sw.dash { color: var(--muted); border-top-style: dashed; }
+code { font-family: var(--f-mono); font-size: .9em; }
+
+/* SVG styling from the page, so the drawing follows the theme */
+svg text { fill: var(--fg); font-family: var(--f-body); font-size: 12px; }
+svg .t-title { font-weight: 600; font-size: 13px; }
+svg .t-mono { font-family: var(--f-mono); font-size: 11px; fill: var(--muted); }
+svg .t-muted { fill: var(--muted); font-size: 11px; }
+svg .t-zone { font-family: var(--f-mono); font-size: 11px; fill: var(--muted); letter-spacing: .06em; }
+svg .t-alarm { fill: var(--alarm); font-weight: 600; }
+svg .t-llm { fill: var(--llm); font-weight: 600; }
+svg .node { fill: var(--panel); stroke: var(--line); stroke-width: 1.2; }
+svg .node-alarm { fill: var(--alarm-soft); stroke: var(--alarm); stroke-width: 1.6; }
+svg .node-llm { fill: var(--llm-soft); stroke: var(--llm); stroke-width: 1.6; }
+svg .node-dash { fill: var(--panel); stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+svg .zone { fill: var(--zone); stroke: var(--line); stroke-width: 1; }
+svg .pipe { fill: var(--llm-soft); stroke: var(--llm); stroke-width: 1; stroke-dasharray: 2 3; }
+svg .e { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+svg .e-alarm { fill: none; stroke: var(--alarm); stroke-width: 2.2; }
+svg .e-llm { fill: none; stroke: var(--llm); stroke-width: 2; }
+svg .e-dash { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 6 5; }
+svg .ah { fill: var(--muted); } svg .ah-alarm { fill: var(--alarm); } svg .ah-llm { fill: var(--llm); }
+svg .axis { stroke: var(--line); stroke-width: 1; }
+svg .bar-llm { fill: var(--llm); } svg .bar-ghost { fill: var(--llm-soft); stroke: var(--llm); stroke-width: 1; stroke-dasharray: 3 3; }
+svg .dot-alarm { fill: var(--alarm); }
+svg .limit { stroke: var(--alarm); stroke-width: 1.5; stroke-dasharray: 5 4; }
+
+.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.col { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.col h3 { margin: 0; font-family: var(--f-display); font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.pill { font-family: var(--f-mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; letter-spacing: .04em; }
+.pill.ok { background: var(--llm-soft); color: var(--llm); }
+.pill.open { background: var(--alarm-soft); color: var(--alarm); }
+.col ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.col li { font-size: 14px; }
+.col li b { font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) { .scroller { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">AETHER-G · edge backend · per 15 Nov 2026</div>
+    <h1>Alur AETHER-G</h1>
+    <p class="lede">Dari sensor di kompartemen sampai saran untuk kru. Status kebakaran selalu diputuskan detektor berbasis aturan dalam hitungan milidetik. Gemma hanya menjelaskan, tidak pernah mengubah status.</p>
+  </header>
+
+  <section>
+    <div class="eyebrow">Target demo</div>
+    <h2>Satu Jetson, sepenuhnya offline</h2>
+    <p>Semua yang sekarang tersebar di server zerodays dan Mac Mas Heri pindah ke satu Jetson. ESP32-S3 membaca sensor dan mengirim JSON lewat USB. Tidak ada internet, Cloudflare, Dokploy, maupun WireGuard.</p>
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 1200 610" role="img" aria-label="ESP32-S3 mengirim JSON lewat USB Serial ke Jetson. Di dalam Jetson ada serial bridge, ingest, detektor Stage-1, InfluxDB, RAG lokal, advisor worker, Gemma lokal di GPU, fallback, SQLite, REST API yang juga menyajikan dashboard, dan SSE. Layar kru membaca dari Jetson tanpa internet.">
+          <defs>
+            <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+            <marker id="ba" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-alarm" d="M0,0 L10,5 L0,10 z"/></marker>
+            <marker id="bl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-llm" d="M0,0 L10,5 L0,10 z"/></marker>
+          </defs>
+
+          <rect class="zone" x="250" y="60" width="710" height="530" rx="8"/>
+          <text class="t-zone" x="268" y="84">NVIDIA JETSON · SATU PERANGKAT · OFFLINE</text>
+          <text class="t-mono" x="268" y="102">semua lewat localhost; layar kru lewat HDMI atau WiFi lokal pesawat</text>
+
+          <!-- sensors -->
+          <rect class="node-alarm" x="20" y="140" width="190" height="130" rx="6"/>
+          <text class="t-title" x="36" y="166">ESP32-S3 + sensor</text>
+          <text class="t-muted" x="36" y="188">CO, CO₂</text>
+          <text class="t-muted" x="36" y="204">BME688 (VOC)</text>
+          <text class="t-muted" x="36" y="220">SEN55 (PM2.5)</text>
+          <text class="t-muted" x="36" y="236">3× termokopel tipe K</text>
+          <text class="t-muted" x="36" y="252">MLX90640 (IR)</text>
+
+          <!-- column A -->
+          <rect class="node-alarm" x="280" y="150" width="130" height="70" rx="6"/>
+          <text class="t-title" x="294" y="176">Serial bridge</text>
+          <text class="t-mono" x="294" y="196">feed.py --stdin</text>
+          <text class="t-muted" x="294" y="211">baca /dev/ttyACM0</text>
+
+          <!-- column B -->
+          <rect class="node-alarm" x="450" y="150" width="150" height="70" rx="6"/>
+          <text class="t-title" x="464" y="176">Ingest</text>
+          <text class="t-mono" x="464" y="196">POST /api/v1/ingest</text>
+          <text class="t-muted" x="464" y="211">cek token + kontrak</text>
+
+          <rect class="node" x="450" y="320" width="150" height="70" rx="6"/>
+          <text class="t-title" x="464" y="346">InfluxDB</text>
+          <text class="t-muted" x="464" y="364">telemetri + hasil</text>
+          <text class="t-muted" x="464" y="379">(opsional: SQLite saja)</text>
+
+          <rect class="node" x="450" y="480" width="150" height="70" rx="6"/>
+          <text class="t-title" x="464" y="506">RAG lokal</text>
+          <text class="t-muted" x="464" y="524">17 fakta NASA PSI,</text>
+          <text class="t-muted" x="464" y="539">NTRS, NIST (file JSON)</text>
+
+          <!-- column C -->
+          <rect class="node-alarm" x="640" y="150" width="150" height="70" rx="6"/>
+          <text class="t-title" x="654" y="176">Detektor Stage-1</text>
+          <text class="t-muted" x="654" y="195">aturan, bukan model</text>
+          <text class="t-muted" x="654" y="211">status + cek debu</text>
+
+          <rect class="node-llm" x="640" y="320" width="150" height="70" rx="6"/>
+          <text class="t-title" x="654" y="346">Advisor worker</text>
+          <text class="t-muted" x="654" y="364">1 run/kompartemen,</text>
+          <text class="t-muted" x="654" y="379">window 60 s + 4 fakta</text>
+
+          <rect class="node-llm" x="640" y="480" width="150" height="80" rx="6"/>
+          <text class="t-title" x="654" y="506">Gemma lokal</text>
+          <text class="t-muted" x="654" y="524">Ollama / llama.cpp</text>
+          <text class="t-muted" x="654" y="540">di GPU Jetson,</text>
+          <text class="t-muted" x="654" y="555">API OpenAI-compatible</text>
+
+          <!-- column D -->
+          <rect class="node" x="830" y="112" width="112" height="52" rx="6"/>
+          <text class="t-title" x="842" y="134">REST API</text>
+          <text class="t-mono" x="842" y="152">+ file dashboard</text>
+
+          <rect class="node" x="830" y="186" width="112" height="52" rx="6"/>
+          <text class="t-title" x="842" y="208">SSE</text>
+          <text class="t-mono" x="842" y="226">/stream</text>
+
+          <rect class="node" x="830" y="320" width="112" height="70" rx="6"/>
+          <text class="t-title" x="842" y="344">Fallback</text>
+          <text class="t-muted" x="842" y="362">teks aturan,</text>
+          <text class="t-muted" x="842" y="377">tetap bersumber</text>
+
+          <rect class="node" x="830" y="480" width="112" height="70" rx="6"/>
+          <text class="t-title" x="842" y="506">SQLite</text>
+          <text class="t-muted" x="842" y="524">advisory · event</text>
+          <text class="t-muted" x="842" y="539">tanya-jawab</text>
+
+          <!-- outside -->
+          <rect class="node" x="1000" y="110" width="185" height="130" rx="6"/>
+          <text class="t-title" x="1014" y="136">Layar kru</text>
+          <text class="t-muted" x="1014" y="158">monitor kabin langsung</text>
+          <text class="t-muted" x="1014" y="176">ke Jetson (HDMI), atau</text>
+          <text class="t-muted" x="1014" y="194">tablet kru lewat WiFi</text>
+          <text class="t-muted" x="1014" y="212">lokal pesawat (offline)</text>
+
+          <rect class="node-dash" x="1000" y="300" width="185" height="120" rx="6"/>
+          <text class="t-title" x="1014" y="326">Tidak dipakai lagi</text>
+          <text class="t-muted" x="1014" y="348">server zerodays, Dokploy</text>
+          <text class="t-muted" x="1014" y="366">Cloudflare, WireGuard</text>
+          <text class="t-muted" x="1014" y="384">oMLX di Mac Mas Heri</text>
+          <text class="t-muted" x="1014" y="402">(oMLX hanya jalan di Mac)</text>
+
+          <!-- alarm path -->
+          <line class="e-alarm" x1="210" y1="185" x2="278" y2="185" marker-end="url(#ba)"/>
+          <text class="t-alarm" x="216" y="176">USB</text>
+          <text class="t-muted" x="216" y="203">2 Hz</text>
+          <line class="e-alarm" x1="410" y1="185" x2="448" y2="185" marker-end="url(#ba)"/>
+          <line class="e-alarm" x1="600" y1="185" x2="638" y2="185" marker-end="url(#ba)"/>
+          <line class="e-alarm" x1="790" y1="212" x2="828" y2="212" marker-end="url(#ba)"/>
+          <line class="e" x1="790" y1="160" x2="828" y2="140" marker-end="url(#b)"/>
+
+          <!-- storage -->
+          <line class="e" x1="650" y1="220" x2="562" y2="318" marker-end="url(#b)"/>
+          <text class="t-muted" x="545" y="262">simpan</text>
+          <line class="e" x1="600" y1="355" x2="638" y2="355" marker-end="url(#b)"/>
+          <text class="t-muted" x="604" y="347">60 s</text>
+          <line class="e" x1="600" y1="500" x2="660" y2="392" marker-end="url(#b)"/>
+          <text class="t-muted" x="590" y="440">fakta</text>
+          <line class="e" x1="790" y1="390" x2="860" y2="478" marker-end="url(#b)"/>
+          <text class="t-muted" x="802" y="470">simpan</text>
+          <line class="e" x1="790" y1="355" x2="828" y2="355" marker-end="url(#b)"/>
+
+          <!-- llm path -->
+          <line class="e-llm" x1="715" y1="220" x2="715" y2="318" marker-end="url(#bl)"/>
+          <text class="t-muted" x="723" y="262">status berubah,</text>
+          <text class="t-muted" x="723" y="277">debu, tiap 30 s,</text>
+          <text class="t-muted" x="723" y="292">POST /ask</text>
+          <line class="e-llm" x1="700" y1="390" x2="700" y2="478" marker-end="url(#bl)"/>
+          <text class="t-llm" x="644" y="420">prompt</text>
+          <line class="e-llm" x1="740" y1="478" x2="740" y2="392" marker-end="url(#bl)"/>
+          <text class="t-llm" x="748" y="440">token</text>
+          <line class="e-llm" x1="780" y1="320" x2="860" y2="240" marker-end="url(#bl)"/>
+
+          <!-- to screen -->
+          <line class="e" x1="942" y1="138" x2="998" y2="138" marker-end="url(#b)"/>
+          <text class="t-muted" x="946" y="130">halaman</text>
+          <line class="e-dash" x1="942" y1="212" x2="998" y2="212" marker-end="url(#b)"/>
+          <text class="t-muted" x="946" y="230">live</text>
+        </svg>
+      </div>
+      <figcaption>Alurnya sama dengan setup testing. Yang berubah hanya letak komponennya: ESP32 masuk lewat USB, bukan internet; Gemma jalan di GPU Jetson, bukan di Mac lewat tunnel; dan dashboard disajikan dari Jetson sendiri, ke monitor kabin lewat HDMI atau ke tablet kru lewat WiFi lokal pesawat yang tidak tersambung ke internet. Garis putus-putus ke layar kru menandai panel Gemma yang masih harus disambung ke <code>/stream</code>.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Bisa jalan di Jetson?</h2>
+    <p>Bisa. Perubahan kodenya kecil, dan yang paling menentukan adalah model Jetson-nya.</p>
+    <div class="status">
+      <div class="col">
+        <h3>Perubahan yang perlu</h3>
+        <ul>
+          <li><b>LLM</b>: oMLX hanya jalan di Mac (MLX), jadi diganti Ollama atau llama.cpp server di Jetson. Keduanya API OpenAI-compatible seperti oMLX, jadi backend cukup ganti <code>AETHER_OMLX_BASE_URL</code> dan <code>AETHER_OMLX_MODEL</code>.</li>
+          <li><b>Serial bridge</b>: <code>feed.py --stdin</code> sudah ada, tapi perlu dibuat tahan terhadap baris yang bukan JSON (log boot ESP32).</li>
+          <li><b>Dashboard</b>: build statis dengan <code>VITE_API_BASE</code> diarahkan ke alamat lokal Jetson.</li>
+          <li><b>Ukur di perangkat</b>: <code>bench_llm.py</code> yang sama bisa dijalankan ke Ollama di Jetson.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Tergantung model Jetson <span class="pill open">cek dulu</span></h3>
+        <ul>
+          <li><b>Jetson Nano lama (4 GB, JetPack 4)</b>: RAM 4 GB dibagi CPU dan GPU dengan InfluxDB dan backend. Paling realistis model Gemma ~1-2B yang dikuantisasi, dan jawabannya kemungkinan sering lewat batas 6 detik, sehingga fallback yang dipakai. Ollama versi baru menargetkan JetPack 5/6, jadi di sini kemungkinan perlu llama.cpp yang di-build sendiri.</li>
+          <li><b>Jetson Orin Nano (8 GB, JetPack 6)</b>: jauh lebih layak. Ollama jalan di GPU, dan Gemma 2B atau E4B 4-bit muat. Kecepatannya tetap lebih lambat daripada Mac, jadi target &lt;2 s untuk advisory lengkap perlu diukur dulu.</li>
+          <li>Kalau RAM mepet, InfluxDB (dibatasi 512 MB) bisa diganti SQLite saja. Ini perubahan di storage layer.</li>
+          <li>Di kedua model, jalur alarm tidak terpengaruh, karena detektornya tidak memakai model.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Sekarang</div>
+    <h2>Setup testing (remote)</h2>
+    <div class="legend" aria-hidden="true">
+      <span><i class="sw alarm"></i>Jalur alarm, tanpa model</span>
+      <span><i class="sw llm"></i>Jalur saran Gemma</span>
+      <span><i class="sw dash"></i>Pengganti saat tes, atau belum disambung</span>
+    </div>
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 1160 610" role="img" aria-label="Sensor mengirim telemetri ke backend di server zerodays. Detektor Stage-1 menentukan status dan langsung mengirimnya ke dashboard. Advisor worker meminta saran ke Gemma di Mac Mas Heri lewat WireGuard, dengan fallback deterministik kalau oMLX lambat atau mati.">
+          <defs>
+            <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+            <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-alarm" d="M0,0 L10,5 L0,10 z"/></marker>
+            <marker id="al" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-llm" d="M0,0 L10,5 L0,10 z"/></marker>
+          </defs>
+
+          <!-- server boundary -->
+          <rect class="zone" x="260" y="60" width="600" height="530" rx="8"/>
+          <text class="t-zone" x="278" y="84">SERVER ZERODAYS · DOKPLOY</text>
+          <text class="t-mono" x="278" y="102">masuk lewat Cloudflare → Traefik · aether-be.fakhrads.dev</text>
+
+          <!-- sources -->
+          <rect class="node-alarm" x="20" y="145" width="190" height="80" rx="6"/>
+          <text class="t-title" x="36" y="172">ESP32-S3 / Jetson</text>
+          <text class="t-muted" x="36" y="192">CO · CO₂ · VOC · PM2.5</text>
+          <text class="t-muted" x="36" y="208">suhu IR + 3 termokopel</text>
+
+          <rect class="node-dash" x="20" y="275" width="190" height="64" rx="6"/>
+          <text class="t-title" x="36" y="301">feed.py / simulator</text>
+          <text class="t-muted" x="36" y="321">pengganti Jetson saat tes</text>
+
+          <!-- column A -->
+          <rect class="node-alarm" x="290" y="150" width="140" height="70" rx="6"/>
+          <text class="t-title" x="304" y="176">Ingest</text>
+          <text class="t-mono" x="304" y="196">POST /api/v1/ingest</text>
+          <text class="t-muted" x="304" y="211">cek token + kontrak</text>
+
+          <rect class="node" x="290" y="320" width="140" height="70" rx="6"/>
+          <text class="t-title" x="304" y="346">InfluxDB</text>
+          <text class="t-muted" x="304" y="364">telemetri + hasil</text>
+          <text class="t-muted" x="304" y="379">buffer saat down</text>
+
+          <rect class="node" x="290" y="480" width="140" height="70" rx="6"/>
+          <text class="t-title" x="304" y="506">RAG lokal</text>
+          <text class="t-muted" x="304" y="524">17 fakta NASA PSI,</text>
+          <text class="t-muted" x="304" y="539">NTRS, NIST</text>
+
+          <!-- column B -->
+          <rect class="node-alarm" x="500" y="150" width="150" height="70" rx="6"/>
+          <text class="t-title" x="514" y="176">Detektor Stage-1</text>
+          <text class="t-muted" x="514" y="195">aturan, bukan model</text>
+          <text class="t-muted" x="514" y="211">status + cek debu</text>
+
+          <rect class="node-llm" x="500" y="320" width="150" height="70" rx="6"/>
+          <text class="t-title" x="514" y="346">Advisor worker</text>
+          <text class="t-muted" x="514" y="364">1 run/kompartemen,</text>
+          <text class="t-muted" x="514" y="379">window 60 s + 4 fakta</text>
+
+          <rect class="node" x="500" y="480" width="150" height="70" rx="6"/>
+          <text class="t-title" x="514" y="506">SQLite</text>
+          <text class="t-muted" x="514" y="524">advisory · event</text>
+          <text class="t-muted" x="514" y="539">tanya-jawab (/chat)</text>
+
+          <!-- column C -->
+          <rect class="node" x="720" y="112" width="112" height="52" rx="6"/>
+          <text class="t-title" x="732" y="134">REST API</text>
+          <text class="t-mono" x="732" y="152">/status /ask …</text>
+
+          <rect class="node" x="720" y="186" width="112" height="52" rx="6"/>
+          <text class="t-title" x="732" y="208">SSE</text>
+          <text class="t-mono" x="732" y="226">/stream</text>
+
+          <rect class="node" x="720" y="480" width="112" height="70" rx="6"/>
+          <text class="t-title" x="732" y="504">Fallback</text>
+          <text class="t-muted" x="732" y="522">teks aturan,</text>
+          <text class="t-muted" x="732" y="537">tetap bersumber</text>
+
+          <!-- right column -->
+          <rect class="node" x="930" y="110" width="210" height="130" rx="6"/>
+          <text class="t-title" x="946" y="136">Dashboard (browser)</text>
+          <text class="t-mono" x="946" y="155">aether-g.fakhrads.dev</text>
+          <text class="t-muted" x="946" y="180">status + grafik: jalan</text>
+          <text class="t-muted" x="946" y="198">panel Gemma: belum</text>
+          <text class="t-muted" x="946" y="214">disambung</text>
+
+          <rect class="pipe" x="860" y="332" width="70" height="56" rx="4"/>
+          <rect class="node-llm" x="930" y="305" width="210" height="110" rx="6"/>
+          <text class="t-title" x="946" y="331">Mac Mas Heri</text>
+          <text class="t-mono" x="946" y="350">oMLX · 10.13.13.200:8000</text>
+          <text class="t-muted" x="946" y="374">gemma-4-E4B-it (4-bit)</text>
+          <text class="t-muted" x="946" y="392">lewat WireGuard wg0</text>
+          <text class="t-muted" x="930" y="440">Isolasi satu arah: Mac Heri hanya</text>
+          <text class="t-muted" x="930" y="456">bisa membalas request backend,</text>
+          <text class="t-muted" x="930" y="472">tidak bisa membuka koneksi ke server.</text>
+
+          <!-- alarm path -->
+          <line class="e-alarm" x1="210" y1="185" x2="288" y2="185" marker-end="url(#aa)"/>
+          <text class="t-alarm" x="218" y="172">2 Hz</text>
+          <path class="e-dash" d="M210,307 L250,307 L250,205 L288,205" marker-end="url(#a)"/>
+          <text class="t-muted" x="216" y="300">tes</text>
+          <line class="e-alarm" x1="430" y1="185" x2="498" y2="185" marker-end="url(#aa)"/>
+          <text class="t-muted" x="436" y="176">tiap</text>
+          <text class="t-muted" x="436" y="203">sampel</text>
+          <line class="e-alarm" x1="650" y1="212" x2="718" y2="212" marker-end="url(#aa)"/>
+          <line class="e" x1="650" y1="160" x2="718" y2="140" marker-end="url(#a)"/>
+          <text class="t-muted" x="664" y="137">state</text>
+          <text class="t-alarm" x="664" y="230">push</text>
+
+          <!-- storage -->
+          <line class="e" x1="505" y1="220" x2="420" y2="318" marker-end="url(#a)"/>
+          <text class="t-muted" x="400" y="262">simpan</text>
+          <line class="e" x1="430" y1="355" x2="498" y2="355" marker-end="url(#a)"/>
+          <text class="t-muted" x="438" y="347">60 s</text>
+          <line class="e" x1="430" y1="505" x2="510" y2="392" marker-end="url(#a)"/>
+          <text class="t-muted" x="476" y="462">fakta</text>
+          <line class="e" x1="575" y1="390" x2="575" y2="478" marker-end="url(#a)"/>
+          <text class="t-muted" x="583" y="440">simpan</text>
+
+          <!-- llm path -->
+          <line class="e-llm" x1="575" y1="220" x2="575" y2="318" marker-end="url(#al)"/>
+          <text class="t-muted" x="583" y="262">status berubah,</text>
+          <text class="t-muted" x="583" y="277">debu, tiap 30 s,</text>
+          <text class="t-muted" x="583" y="292">POST /ask</text>
+          <line class="e-llm" x1="650" y1="345" x2="928" y2="345" marker-end="url(#al)"/>
+          <text class="t-llm" x="664" y="337">prompt</text>
+          <line class="e-llm" x1="928" y1="374" x2="652" y2="374" marker-end="url(#al)"/>
+          <text class="t-llm" x="760" y="392">token stream</text>
+          <line class="e-llm" x1="640" y1="320" x2="745" y2="240" marker-end="url(#al)"/>
+          <text class="t-llm" x="694" y="300">advisory_*</text>
+          <line class="e" x1="650" y1="388" x2="735" y2="478" marker-end="url(#a)"/>
+          <text class="t-muted" x="716" y="430">oMLX mati</text>
+          <text class="t-muted" x="716" y="445">/ &gt; 6 s</text>
+
+          <!-- to dashboard -->
+          <line class="e" x1="832" y1="138" x2="928" y2="138" marker-end="url(#a)"/>
+          <text class="t-muted" x="868" y="130">polling</text>
+          <line class="e-dash" x1="832" y1="212" x2="928" y2="212" marker-end="url(#a)"/>
+          <text class="t-muted" x="868" y="230">belum</text>
+        </svg>
+      </div>
+      <figcaption>Jalur oranye tidak menunggu model apa pun: sampel masuk, detektor menentukan status, dan perubahan status langsung keluar lewat SSE dan <code>/status</code>. Jalur hijau berjalan terpisah. Worker merangkum 60 detik terakhir dari InfluxDB, mengambil 4 fakta dari RAG lokal, lalu meminta Gemma lewat tunnel. Kalau oMLX mati atau token pertama belum datang dalam 6 detik, yang dipakai teks fallback berbasis aturan. Kru juga bisa bertanya lewat <code>POST /ask</code>, dan jawabannya tersimpan di <code>/chat</code>.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Saat alarm terjadi</h2>
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 1160 280" role="img" aria-label="Linimasa satu alarm: status_change keluar sekitar 20 milidetik setelah sampel masuk, Gemma mulai menjawab sekitar 0,12 detik dan selesai sekitar 1,25 detik pada run warm. Batas 6 detik untuk token pertama memicu fallback.">
+          <!-- scale: x = 190 + t * 130 (t in seconds, 0..7) -->
+          <line class="axis" x1="190" y1="232" x2="1100" y2="232"/>
+          <g>
+            <line class="axis" x1="190" y1="228" x2="190" y2="236"/><text class="t-mono" x="190" y="252" text-anchor="middle">0 s</text>
+            <line class="axis" x1="320" y1="228" x2="320" y2="236"/><text class="t-mono" x="320" y="252" text-anchor="middle">1 s</text>
+            <line class="axis" x1="450" y1="228" x2="450" y2="236"/><text class="t-mono" x="450" y="252" text-anchor="middle">2 s</text>
+            <line class="axis" x1="580" y1="228" x2="580" y2="236"/><text class="t-mono" x="580" y="252" text-anchor="middle">3 s</text>
+            <line class="axis" x1="710" y1="228" x2="710" y2="236"/><text class="t-mono" x="710" y="252" text-anchor="middle">4 s</text>
+            <line class="axis" x1="840" y1="228" x2="840" y2="236"/><text class="t-mono" x="840" y="252" text-anchor="middle">5 s</text>
+            <line class="axis" x1="970" y1="228" x2="970" y2="236"/><text class="t-mono" x="970" y="252" text-anchor="middle">6 s</text>
+            <line class="axis" x1="1100" y1="228" x2="1100" y2="236"/><text class="t-mono" x="1100" y="252" text-anchor="middle">7 s</text>
+          </g>
+
+          <text class="t-title" x="20" y="54">Detektor</text>
+          <text class="t-muted" x="20" y="70">tanpa model</text>
+          <circle class="dot-alarm" cx="193" cy="58" r="7"/>
+          <text class="t-alarm" x="210" y="54">status_change + teks awal (preliminary)</text>
+          <text class="t-muted" x="210" y="71">~20 ms setelah POST (median latensi ingest 21 ms)</text>
+
+          <text class="t-title" x="20" y="124">Gemma</text>
+          <text class="t-muted" x="20" y="140">warm, median 9 run</text>
+          <rect class="bar-llm" x="206" y="112" width="147" height="20" rx="3"/>
+          <text class="t-muted" x="206" y="104">token 1: 0,12 s</text>
+          <text class="t-llm" x="362" y="127">selesai 1,25 s</text>
+
+          <text class="t-title" x="20" y="186">Gemma</text>
+          <text class="t-muted" x="20" y="202">run pertama (cold)</text>
+          <rect class="bar-ghost" x="645" y="174" width="143" height="20" rx="3"/>
+          <line class="axis" x1="190" y1="184" x2="645" y2="184"/>
+          <text class="t-muted" x="560" y="168">token 1: 3,5 s</text>
+          <text class="t-llm" x="797" y="189">selesai 4,6 s</text>
+
+          <line class="limit" x1="970" y1="36" x2="970" y2="226"/>
+          <text class="t-alarm" x="980" y="104">batas 6 s</text>
+          <text class="t-muted" x="980" y="121">token pertama belum</text>
+          <text class="t-muted" x="980" y="137">datang → fallback</text>
+          <text class="t-muted" x="980" y="160">(total maks 20 s)</text>
+        </svg>
+      </div>
+      <figcaption>Waktu dari benchmark <code>bench_llm.py --runs 10</code> lewat tunnel pada 15 Nov 2026 (0 dari 10 gagal) dan dari tes skenario smoldering ke deployment. Alarm sudah tampil sebelum Gemma mulai menulis, jadi kru tidak pernah menunggu model untuk tahu ada bahaya.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Yang sudah jalan dan yang belum</h2>
+    <div class="status">
+      <div class="col">
+        <h3>Sudah jalan <span class="pill ok">terverifikasi</span></h3>
+        <ul>
+          <li><b>Ingest + detektor</b> di aether-be.fakhrads.dev. Tes smoldering: 151 sampel, 0 error, alarm di t = 10,5 s (CO 26 ppm).</li>
+          <li><b>Gemma lewat WireGuard</b>: ping ~17 ms, advisory dari deployment benar-benar dari model, bukan fallback.</li>
+          <li><b>Dashboard live</b>: membaca <code>/status</code> secara polling.</li>
+          <li><b>Kode backend</b> sudah di-merge ke <code>main</code> (PR #18).</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Belum <span class="pill open">terbuka</span></h3>
+        <ul>
+          <li><b>Panel Gemma di dashboard</b> masih <code>advisory={null}</code> di branch <code>edo</code>, belum membaca <code>/stream</code> atau <code>/advisories</code>.</li>
+          <li><b>Kualitas jawaban Gemma</b>: tiga langkah isinya sama dan tanpa sumber. Prompt perlu diperbaiki.</li>
+          <li><b>Jetson asli</b>: sejauh ini deployment baru diuji dengan <code>feed.py</code>.</li>
+          <li><b>Isolasi tunnel</b> belum dites dari sisi Mac Heri.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
