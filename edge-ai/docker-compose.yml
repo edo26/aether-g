@@ -1,0 +1,28 @@
+# Phase 0: InfluxDB only. The backend service is added in Phase 5.
+services:
+  influxdb:
+    image: influxdb:2.7
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD:?set INFLUXDB_ADMIN_PASSWORD in .env}
+      DOCKER_INFLUXDB_INIT_ORG: ${AETHER_INFLUX_ORG:-aether}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${AETHER_INFLUX_BUCKET:-telemetry}
+      DOCKER_INFLUXDB_INIT_RETENTION: 7d
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${AETHER_INFLUX_TOKEN:?set AETHER_INFLUX_TOKEN in .env}
+    volumes:
+      - influx-data:/var/lib/influxdb2
+      - influx-config:/etc/influxdb2
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  influx-data:
+  influx-config:
