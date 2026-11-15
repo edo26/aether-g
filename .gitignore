@@ -47,3 +47,6 @@ data/downloads/
 # OS / runtime
 .DS_Store
 *.log
+
+# Backend runtime state
+**/data/aether.db*

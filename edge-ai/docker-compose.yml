@@ -1,0 +1,56 @@
+# docker compose up -d --build        (from edge-ai/, with a .env next to this file)
+# Locally docker-compose.override.yml is loaded automatically and publishes the ports.
+# Dokploy uses this file alone (no host ports; Traefik routes aether-be.fakhrads.dev to backend:8000)
+# and takes the variables from the project's environment instead of a .env file.
+services:
+  influxdb:
+    image: influxdb:2.7
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD:?set INFLUXDB_ADMIN_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${AETHER_INFLUX_ORG:-aether}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${AETHER_INFLUX_BUCKET:-telemetry}
+      DOCKER_INFLUXDB_INIT_RETENTION: 7d
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${AETHER_INFLUX_TOKEN:?set AETHER_INFLUX_TOKEN}
+    volumes:
+      - influx-data:/var/lib/influxdb2
+      - influx-config:/etc/influxdb2
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ..
+      dockerfile: edge-ai/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    environment:
+      AETHER_DEVICE_TOKEN: ${AETHER_DEVICE_TOKEN:?set AETHER_DEVICE_TOKEN}
+      AETHER_INFLUX_URL: http://influxdb:8086
+      AETHER_INFLUX_ORG: ${AETHER_INFLUX_ORG:-aether}
+      AETHER_INFLUX_BUCKET: ${AETHER_INFLUX_BUCKET:-telemetry}
+      AETHER_INFLUX_TOKEN: ${AETHER_INFLUX_TOKEN:?set AETHER_INFLUX_TOKEN}
+      AETHER_OMLX_BASE_URL: ${AETHER_OMLX_BASE_URL:-}
+      AETHER_OMLX_MODEL: ${AETHER_OMLX_MODEL:-}
+      AETHER_OMLX_API_KEY: ${AETHER_OMLX_API_KEY:-}
+      AETHER_ADVISORY_PERIOD_S: ${AETHER_ADVISORY_PERIOD_S:-30}
+      AETHER_LLM_FIRST_TOKEN_TIMEOUT_S: ${AETHER_LLM_FIRST_TOKEN_TIMEOUT_S:-6}
+      AETHER_CORS_ORIGINS: ${AETHER_CORS_ORIGINS:-*}
+    volumes:
+      - backend-data:/data
+    expose:
+      - "8000"
+    mem_limit: 512m
+
+volumes:
+  influx-data:
+  influx-config:
+  backend-data:

@@ -1,0 +1,12 @@
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.env
+**/.env.*
+!**/.env.example
+**/data/aether.db*
+data/raw
+dashboard
+firmware
+scraper
+.git
