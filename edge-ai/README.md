@@ -18,7 +18,41 @@ Measured so far (this machine, simulator data): `POST /ingest` median 1.3 ms, p9
 
 ### Deployment
 
-Deployed on Dokploy (project **Hackathon**, compose `aether-g-backend`, built from branch `feat/edge-backend` with `edge-ai/docker-compose.yml`): API and docs at https://aether-be.fakhrads.dev (`/docs`, `/api/v1/health`). Secrets live in the Dokploy environment of that compose, not in git. The dashboard (Edo's Vite + React app from branch `edo`, built by Dokploy from `dashboard/` with `VITE_API_BASE=https://aether-be.fakhrads.dev/api/v1`) is deployed as the Dokploy application `aether-g-dashboard` at https://aether-g.fakhrads.dev. Live mode polls `GET /api/v1/status` and reads its `latest` frame; the Gemma advisory panel is not wired to `/stream` or `/advisories` yet. oMLX is not configured on the deployment yet (`omlx: not_configured`, advisories use the deterministic fallback); set `AETHER_OMLX_BASE_URL` and `AETHER_OMLX_MODEL` there and redeploy. Note the server is public while oMLX lives on the team's NetBird network, so the deployed container needs NetBird access to reach it.
+Deployed on Dokploy (project **Hackathon**, compose `aether-g-backend`, built from branch `feat/edge-backend` with `edge-ai/docker-compose.yml`): API and Swagger at https://aether-be.fakhrads.dev (`/docs`, `/api/v1/health`). Secrets live in the Dokploy environment of that compose, not in git. The dashboard (Vite + React from branch `edo`, built from `dashboard/` with `VITE_API_BASE=https://aether-be.fakhrads.dev/api/v1`) is the Dokploy application `aether-g-dashboard` at https://aether-g.fakhrads.dev. In live mode it polls `/status` and `/thermal`, and its crew advisory panel follows `/stream` and `/advisories`. Advisories come from Gemma (`gemma-4-E4B-it-MLX-4bit`) served by oMLX on a team member's Mac, reached over a private link; when it is unreachable the deterministic fallback is used and `/health` shows `omlx: down`.
+
+### Send simulated data to the live backend (team)
+
+Anyone on the team can drive the deployed dashboard with the simulator, no server setup needed.
+
+1. Install [uv](https://docs.astral.sh/uv/) once:
+   - macOS / Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+   - Windows (PowerShell): `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
+2. Clone and enter the backend folder:
+   ```bash
+   git clone https://github.com/edo26/aether-g.git
+   cd aether-g/edge-ai
+   ```
+3. Create `edge-ai/.env` with the device token (ask the backend owner in a direct message; never commit it, `.env` is git-ignored):
+   ```
+   AETHER_DEVICE_TOKEN=<token>
+   ```
+4. Run a scenario (the first run downloads Python 3.11 and the dependencies):
+   ```bash
+   uv run python tools/feed.py --url https://aether-be.fakhrads.dev --scenario smoldering --thermal
+   ```
+5. Open https://aether-g.fakhrads.dev and set **Source** to **Live backend**. Smoldering trips the alarm at about 10.5 s and Gemma's advisory follows a few seconds later.
+
+| Option | Meaning |
+| --- | --- |
+| `--scenario nominal \| dust \| smoldering \| airgapped` | what to send (`dust` stays NOMINAL and shows the dust rejection) |
+| `--thermal` | also send a synthetic MLX90640 frame per sample (labeled "Simulated camera frame" on the dashboard) |
+| `--duration-s 120` | scenario length in seconds (default 75) |
+| `--speed 5` | send 5x faster than real time (default 1) |
+| `--quiet` | print only the summary at the end |
+
+Rules: only one person feeds at a time, and never while the real ESP32 is sending. Everything uses compartment `AVIONICS_BAY_B2`, so two sources at once mix their data and keep resetting the detector session. Simulated data is stored like real data (labeled `source: simulator`) and shows up in charts, advisories and events.
+
+The real device uses the same two endpoints: `POST /api/v1/ingest` for telemetry and `POST /api/v1/thermal` for MLX90640 frames (see [API.md](API.md); Swagger has an ESP32 example sketch). Over USB serial, pipe the board into the same tool: `cat /dev/ttyACM0 | uv run python tools/feed.py --stdin --speed 0 --source jetson --url ...`.
 
 ### Run it
 
