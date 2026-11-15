@@ -14,17 +14,28 @@ MAX_POINTS = 5000
 MAX_RANGE_S = 7 * 86400
 
 
-@router.get("/status", summary="Latest state per compartment")
+@router.get("/status", summary="Latest state per compartment", description=(
+    "`compartments` has one rich object per compartment. `latest` is the most recently received "
+    "sample as a bare contract frame (exactly the five contract keys, with the backend's own "
+    "`stage1_detector`), or `null`; the Vite dashboard polls this."))
 async def status(request: Request):
     live = request.app.state.live
     items = []
-    for cid, latest in sorted(live.all().items()):
-        body = sample_payload(latest.sample, latest.result, latest.source)
-        body["received_at"] = latest.received_at.isoformat()
-        body["last_sample_age_s"] = live.age_s(latest)
+    newest = max(live.all().values(), key=lambda l: l.received_mono, default=None)
+    latest = None
+    if newest is not None:
+        s, r = newest.sample, newest.result
+        latest = {
+            "timestamp_ms": s.timestamp_ms, "mode": s.mode, "compartment_id": s.compartment_id,
+            "telemetry": s.telemetry.model_dump(), "stage1_detector": r.stage1(),
+        }
+    for cid, entry in sorted(live.all().items()):
+        body = sample_payload(entry.sample, entry.result, entry.source)
+        body["received_at"] = entry.received_at.isoformat()
+        body["last_sample_age_s"] = live.age_s(entry)
         body["latest_advisory"] = request.app.state.db.latest_advisory(cid)
         items.append(body)
-    return {"compartments": items}
+    return {"compartments": items, "latest": latest}
 
 
 @router.get("/telemetry", summary="Downsampled time series for charts")

@@ -35,13 +35,18 @@ def post(c, body):
 
 def test_status_empty_then_populated(ctx):
     c, _, _ = ctx
-    assert c.get("/api/v1/status").json() == {"compartments": []}
+    assert c.get("/api/v1/status").json() == {"compartments": [], "latest": None}
     post(c, simulate("nominal", 1)[0])
     comp = c.get("/api/v1/status").json()["compartments"][0]
     assert comp["compartment_id"] == "AVIONICS_BAY_B2"
     assert comp["stage1_detector"]["status"] == "NOMINAL"
     assert comp["telemetry"]["thermocouples_c"] and comp["source"] == "jetson"
     assert comp["last_sample_age_s"] >= 0 and comp["latest_advisory"] is None
+    latest = c.get("/api/v1/status").json()["latest"]
+    # a bare contract frame for the Vite dashboard: exactly the five envelope keys, nothing extra
+    assert set(latest) == {"timestamp_ms", "mode", "compartment_id", "telemetry", "stage1_detector"}
+    assert set(latest["stage1_detector"]) == {"status", "confidence_score", "false_alarm_dust_check"}
+    assert latest["compartment_id"] == "AVIONICS_BAY_B2" and len(latest["telemetry"]["thermocouples_c"]) == 3
 
 
 def test_ingest_records_into_store_with_source(ctx):

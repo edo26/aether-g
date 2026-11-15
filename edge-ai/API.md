@@ -20,7 +20,8 @@ Everything the dashboard needs comes from this one service. Do not talk to Influ
 ### `GET /status`: latest state per compartment
 
 ```json
-{"compartments": [{
+{"latest": {"timestamp_ms": 40000, "mode": "LIVE_IOT", "compartment_id": "AVIONICS_BAY_B2", "telemetry": {"...": "as below"}, "stage1_detector": {"...": "as below"}},
+ "compartments": [{
   "compartment_id": "AVIONICS_BAY_B2", "timestamp_ms": 40000, "mode": "LIVE_IOT", "source": "simulator",
   "telemetry": {"co_ppm": 85.0, "co2_ppm": 566.67, "voc_index": 140, "ch4_ppm": 0.47, "pm25_ug_m3": 27.33,
                 "airflow_cm_s": 4.3, "thermocouples_c": [31.37, 46.58, 38.36], "max_ir_temp_c": 57.33,
@@ -31,6 +32,8 @@ Everything the dashboard needs comes from this one service. Do not talk to Influ
   "latest_advisory": { "...": "an advisory object, see /advisories, or null" }
 }]}
 ```
+`latest` (next to `compartments`) is the most recently received sample as a bare contract frame: exactly the five envelope keys with the backend's own `stage1_detector`, or `null` before any data. The Vite dashboard in `dashboard/` polls this; it validates frames strictly, so `latest` never carries extra keys.
+
 `last_sample_age_s` is the stale-data indicator (the Jetson posts every 0.5 s; treat more than ~3 s as stale). `features` are supporting evidence (`ratio` is `null` when the CO2 rise is below the 20 ppm noise floor).
 
 ### `GET /telemetry?compartment_id=AVIONICS_BAY_B2&range=5m&every=2s`: chart series
