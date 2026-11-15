@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COLS, ROWS, estimateHeatmap } from "../lib/heatmap.js";
 
 const PROBE_X = [0.15, 0.5, 0.85]; // same positions as lib/heatmap.js (0 / 30 / 60 mm)
@@ -17,6 +17,7 @@ const LEGEND = `linear-gradient(90deg, ${[0, 0.2, 0.4, 0.6, 0.8, 1].map(ramp).jo
 
 export default function Heatmap({ frame }) {
   const ref = useRef(null);
+  const [view, setView] = useState("grid"); // grid shows the 32×24 cells, smooth interpolates them
   const t = frame?.telemetry;
   const est = t ? estimateHeatmap(t.thermocouples_c, t.max_ir_temp_c) : null;
   const span = est ? Math.max(est.max - est.min, 20) : 20; // fixed floor so nominal noise stays cool
@@ -36,10 +37,16 @@ export default function Heatmap({ frame }) {
     <section className="panel" aria-labelledby="heat-h">
       <div className="panel-head">
         <h2 id="heat-h">Thermal</h2>
-        <span className="chip caution" title="Interpolated from three thermocouples and the IR maximum">Schematic estimate</span>
+        <div className="head-tools">
+          <div className="seg" role="group" aria-label="Heatmap view">
+            <button type="button" aria-pressed={view === "grid"} onClick={() => setView("grid")}>Grid 32×24</button>
+            <button type="button" aria-pressed={view === "smooth"} onClick={() => setView("smooth")}>Smooth</button>
+          </div>
+          <span className="chip caution" title="Interpolated from three thermocouples and the IR maximum">Schematic estimate</span>
+        </div>
       </div>
 
-      <div className="well heat-well">
+      <div className={`well heat-well view-${view}`}>
         <canvas ref={ref} width={COLS} height={ROWS} className="heat" aria-label="32 by 24 schematic thermal estimate, not a measured image" />
         {t && PROBE_X.map((px, i) => (
           <span key={i} className={`probe${est.hotProbe === i ? " hot" : ""}`} style={{ left: `${px * 100}%` }}>

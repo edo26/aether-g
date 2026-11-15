@@ -110,7 +110,7 @@ export default function App() {
         </div>
       )}
 
-      <MasterStatus frames={frames} stale={stale} />
+      <MasterStatus frames={frames} stale={stale} ageS={ageMs != null ? ageMs / 1000 : null} />
 
       <main className="layout">
         <div className="area-advisory"><GemmaPanel advisory={null} stage1Alarm={alarm} /></div>

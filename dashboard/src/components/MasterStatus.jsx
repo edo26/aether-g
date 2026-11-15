@@ -1,4 +1,6 @@
 // Annunciator band: the Stage-1 result, readable from across the cabin. Never driven by the LLM.
+import { summarize } from "../lib/summary.js";
+
 const DUST_SHORT = {
   NOMINAL_NO_EVENT: "No dust event",
   DUST_EVENT_REJECTED_NO_THERMAL_GAS_RISE: "Dust spike rejected",
@@ -20,22 +22,23 @@ function coSlope(frames) {
   return (last.telemetry.co_ppm - ref.telemetry.co_ppm) / ((last.timestamp_ms - ref.timestamp_ms) / 1000);
 }
 
-export default function MasterStatus({ frames, stale }) {
+export default function MasterStatus({ frames, stale, ageS }) {
   const f = frames[frames.length - 1];
   const d = f?.stage1_detector;
   const alarm = d?.status === "SMOLDERING_ANOMALY";
   const dust = d && d.false_alarm_dust_check !== "NOMINAL_NO_EVENT";
   const tis = timeInState(frames);
   const slope = coSlope(frames);
+  const summary = summarize(frames, { stale, ageS });
   const cls = !d ? "idle" : alarm ? "alarm" : "ok"; // a dust rejection stays NOMINAL; only its chip turns amber
 
   return (
-    <section className={`master ${cls}${stale ? " is-stale" : ""}`} role="status" aria-live="assertive">
+    <section className={`master ${cls}${stale ? " is-stale" : ""}`} aria-label="Stage-1 status">
       <div className="master-state">
         <span className="lamp" aria-hidden="true" />
         <div>
           <div className="eyebrow">Stage-1 detector · rule-based</div>
-          <div className="master-word">{d ? (alarm ? "Smoldering anomaly" : "Nominal") : "Awaiting data"}</div>
+          <div className="master-word" role="status" aria-live="assertive">{d ? (alarm ? "Smoldering anomaly" : "Nominal") : "Awaiting data"}</div>
         </div>
       </div>
 
@@ -66,6 +69,11 @@ export default function MasterStatus({ frames, stale }) {
           <dd><span className="mono big">{tis != null ? tis.toFixed(1) : "—"}</span><span className="unit">s</span></dd>
         </div>
       </dl>
+
+      <div className="summary">
+        <span className="eyebrow">What is happening</span>
+        <p><b>{summary.headline}</b>{summary.details.length > 0 && " "}{summary.details.join(" ")}</p>
+      </div>
     </section>
   );
 }
