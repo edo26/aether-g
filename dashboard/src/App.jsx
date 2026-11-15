@@ -5,6 +5,7 @@ import RiskPanel from "./components/RiskPanel.jsx";
 import GemmaPanel from "./components/GemmaPanel.jsx";
 import MasterStatus from "./components/MasterStatus.jsx";
 import { SCENARIOS, STALE_AFTER_MS, useSource } from "./lib/useSource.js";
+import { useThermal } from "./lib/useThermal.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 const SCENARIO_NOTE = {
@@ -46,6 +47,7 @@ export default function App() {
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(i); }, []);
 
   const frame = frames[frames.length - 1];
+  const thermal = useThermal({ enabled: source === "live", apiBase: API_BASE, compartmentId: frame?.compartment_id });
   const ageMs = lastRxAt ? Math.max(0, now - lastRxAt) : null;
   const stale = source === "live" && (state === "disconnected" || state === "error" || (ageMs != null && ageMs > STALE_AFTER_MS));
   const alarm = isAlarm(frame);
@@ -80,7 +82,7 @@ export default function App() {
         <dl className="readouts">
           <div><dt>Mode</dt><dd><span className={`chip ${frame?.mode === "NASA_REPLAY" ? "info" : "muted"}`}>{frame?.mode ?? "—"}</span></dd></div>
           <div><dt>Link</dt><dd><span className={`chip dot ${link.cls}`}>{link.text}</span></dd></div>
-          <div><dt>Session T+</dt><dd className="mono">{met(frame?.timestamp_ms)}</dd></div>
+          <div><dt>Session T+</dt><dd className="mono">{met(frame ? frame.timestamp_ms - frames[0].timestamp_ms : null)}</dd></div>
           <div><dt>Last sample</dt><dd className={`mono${stale ? " t-caution" : ""}`}>{ageMs != null ? `${(ageMs / 1000).toFixed(1)} s` : "—"}</dd></div>
           <div><dt>Local</dt><dd className="mono">{pad(clock.getHours())}:{pad(clock.getMinutes())}:{pad(clock.getSeconds())}</dd></div>
         </dl>
@@ -130,7 +132,7 @@ export default function App() {
           </p>
         </section>
 
-        <div className="area-thermal"><Heatmap frame={frame} /></div>
+        <div className="area-thermal"><Heatmap frame={frame} thermal={thermal} now={now} /></div>
         <div className="area-evidence"><RiskPanel frame={frame} /></div>
       </main>
     </div>
