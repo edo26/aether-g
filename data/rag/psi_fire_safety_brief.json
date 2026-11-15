@@ -1,0 +1,764 @@
+{
+  "title": "AETHER-G RAG Brief: NASA PSI Microgravity Fire-Safety Data",
+  "generated_at": "2026-11-15T02:55:16+00:00",
+  "access_date": "2026-11-15",
+  "source": "NASA Physical Sciences Informatics (PSI), https://psi.nasa.gov/",
+  "search_terms": [
+    "saffire",
+    "BASS",
+    "smoldering",
+    "flame spread",
+    "smoke aerosol"
+  ],
+  "caveats": [
+    "Extracted from NASA Physical Sciences Informatics (PSI) metadata and data files; no values are invented.",
+    "Channel units are as given in the source column headers; channels without units are raw, uncalibrated sensor values.",
+    "Times are in the source file's own time base (seconds). Onset = first clear departure from the initial baseline; peak = largest departure.",
+    "Leading placeholder values logged before a sensor was live were removed; channels marked * had exact zeros treated as no-sample."
+  ],
+  "investigations": [
+    {
+      "accession": "PSI-100",
+      "acronym": "SAFFIRE-III",
+      "title": "Spacecraft Fire Experiment-III",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Spacecraft Fire Safety",
+      "period": "2017-?",
+      "flight_program": "International Space Station (ISS)",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "Saffire III enclosure in Cygnus",
+      "doi": "10.60555/040q-4h36",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-100",
+      "related": [
+        "PSI-99",
+        "PSI-98"
+      ],
+      "objective": "The objectives of this investigation were to: (1) determine how rapidly a large scale fire grows in low-gravity and (2) investigate the low-g flammability limits compared to those obtained in NASA’s normal gravity material flammability screening test.",
+      "impact": "The Saffire-I experiment provides a new way to study a realistic fire on an exploration vehicle, which has not been possible in the past because the risks are too high.",
+      "files": {
+        "count": 87,
+        "total_bytes": 35210765052,
+        "by_category": {
+          "Investigation Metadata Files": 1,
+          "Engineering Documents": 2,
+          "Presentations": 3,
+          "Raw Data": 75,
+          "Science Documents": 5,
+          "Experimental table": 1
+        }
+      }
+    },
+    {
+      "accession": "PSI-98",
+      "acronym": "SAFFIRE-I",
+      "title": "Spacecraft Fire Safety Experiment-I",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Spacecraft Fire, Smoke Distribution",
+      "period": "2001-2008",
+      "flight_program": "International Space Station (ISS)",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "Saffire 1 enclosure in Cygnus",
+      "doi": "10.60555/0t15-1z43",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-98",
+      "related": [
+        "PSI-99",
+        "PSI-100",
+        "PSI-26"
+      ],
+      "objective": "The objectives of this investigation were to: (1) determine how rapidly a large scale fire grows in low-gravity and (2) investigate the low-g flammability limits compared to those obtained in NASA’s normal gravity material flammability screening test.",
+      "impact": "The Saffire-I experiment provides a new way to study a realistic fire on an exploration vehicle, which has not been possible in the past because the risks are too high.",
+      "files": {
+        "count": 76,
+        "total_bytes": 12250600201,
+        "by_category": {
+          "Investigation Metadata Files": 1,
+          "Engineering Documents": 2,
+          "Raw Data": 68,
+          "Science Documents": 4,
+          "Experimental table": 1
+        }
+      }
+    },
+    {
+      "accession": "PSI-99",
+      "acronym": "SAFFIRE-II",
+      "title": "Spacecraft Fire Experiment-II",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Surface Combustion",
+      "period": "2016-2017",
+      "flight_program": "Cygnus Spacecraft",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "Cygnus Pressurized Cargo Module, SAFFIRE",
+      "doi": "10.60555/2chp-m469",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-99",
+      "related": [],
+      "objective": "The objectives of SAFFIRE-II are to determine how rapidly a large scale fire grows in low-gravity and to investigate the low-g flammability limits compared to those obtained in NASA’s normal gravity material flammability screening test.",
+      "impact": "The Saffire-II experiment provides a new way to study a realistic fire on an exploration vehicle, which has not been possible in the past because the risks are too high.",
+      "files": {
+        "count": 217,
+        "total_bytes": 16917376045,
+        "by_category": {
+          "Investigation Metadata Files": 1,
+          "Experimental table": 1,
+          "Raw Data": 211,
+          "Science Documents": 4
+        }
+      }
+    },
+    {
+      "accession": "PSI-62",
+      "acronym": "",
+      "title": "Concurrent Flame Spread Modeling using Flamelet Generated Manifolds in Microgravity with Comparison to BASS Experiments using Two-Color Tomography",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Spacecraft Fire Safety",
+      "period": "2019-2021",
+      "flight_program": "",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "",
+      "doi": "10.60555/e9xp-ex83",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-62",
+      "related": [
+        "PSI-25",
+        "PSI-26"
+      ],
+      "objective": "The objective of this research was to develop and validate new flamelet generated manifold (FGM) modeling techniques for concurrent flame spread in microgravity.",
+      "impact": "This research provides predictive tools for screening new materials’ flammability limits, which can lead to the design of safer spacecrafts.",
+      "files": {
+        "count": 1,
+        "total_bytes": 9694,
+        "by_category": {
+          "Investigation Metadata Files": 1
+        }
+      }
+    },
+    {
+      "accession": "PSI-26",
+      "acronym": "BASS",
+      "title": "Burning and Suppression of Solids",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Spacecraft Fire Safety",
+      "period": "2009-2013",
+      "flight_program": "International Space Station (ISS)",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "Microgravity Science Glovebox",
+      "doi": "10.60555/58h4-dy80",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-26",
+      "related": [
+        "PSI-107",
+        "PSI-25"
+      ],
+      "objective": "The two main objectives for BASS are to: 1.) Begin to bridge the gap between the normal gravity NASA-STD-6001 Test#1 method, ground-based microgravity tests, and actual material flammability in microgravity.",
+      "impact": "Current NASA spacecraft materials selection is based on a standard test method (NASA–STD–6001 Test 1) that segregates material based on 1-g behavior without consideration of low gravity effects.",
+      "files": {
+        "count": 210,
+        "total_bytes": 163550265026,
+        "by_category": {
+          "Investigation Metadata Files": 1,
+          "Presentations": 6,
+          "Science Documents": 5,
+          "Engineering Documents": 24,
+          "Raw Data": 173,
+          "Experimental table": 1
+        }
+      }
+    },
+    {
+      "accession": "PSI-25",
+      "acronym": "BASS-II",
+      "title": "Burning and Suppression of Solids - II",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Spacecraft Fire Safety",
+      "period": "2010-2022",
+      "flight_program": "International Space Station (ISS)",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "Microgravity Science Glovebox (MSG)",
+      "doi": "10.60555/4qc4-de67",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-25",
+      "related": [
+        "PSI-26"
+      ],
+      "objective": "BASS-II results contribute to the combustion computational models used in the design of fire detection and suppression systems in microgravity and on Earth.",
+      "impact": "A primary goal of BASS-II is improved spacecraft fire safety, improved understanding of combustion in space and how to avoid it. If you’re on a mission far from Earth, a fire can be catastrophic.",
+      "files": {
+        "count": 695,
+        "total_bytes": 274631106141,
+        "by_category": {
+          "Investigation Metadata Files": 1,
+          "Engineering Documents": 2,
+          "Raw Data": 685,
+          "Reference Data": 1,
+          "Science Documents": 3,
+          "Reports": 1,
+          "Representative Image(s)": 1,
+          "Experimental table": 1
+        }
+      }
+    },
+    {
+      "accession": "PSI-101",
+      "acronym": "SAME-R",
+      "title": "Smoke Aerosol Measurement Experiment-Reflight",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Spacecraft Fire Safety",
+      "period": "2010-2010",
+      "flight_program": "International Space Station (ISS)",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "Comparitive Soot Diagnostic Hardware; Refer to final report",
+      "doi": "10.60555/2np7-jv14",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-101",
+      "related": [
+        "PSI-102"
+      ],
+      "objective": "Similar to the original SAME investigation, the primary objective of the SAME-R investigation was to quantify the sizes that the liquid smoke particulate achieves in low gravity and to relate the droplet size distribution to the smoke generation and smoke transport conditions in the experiment.",
+      "impact": "Along with the results from the original SAME investigation, the results from SAME-R can lead to technology for an advanced fire detector for future spacecraft that will be used for long duration...",
+      "files": {
+        "count": 344,
+        "total_bytes": 6308124750,
+        "by_category": {
+          "Engineering Documents": 24,
+          "Reports": 1,
+          "Presentations": 4,
+          "Analyzed Data": 86,
+          "Raw Data": 223,
+          "Science Documents": 2,
+          "Reference Data": 2,
+          "Investigation Metadata Files": 1,
+          "Experimental table": 1
+        }
+      }
+    },
+    {
+      "accession": "PSI-102",
+      "acronym": "SAME",
+      "title": "Smoke and Aerosol Measurement Experiment",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Spacecraft Fire Safety",
+      "period": "2001-2008",
+      "flight_program": "International Space Station (ISS)",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "Comparitive Soot Diagnostic Hardware",
+      "doi": "10.60555/gd4k-8h62",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-102",
+      "related": [
+        "PSI-101"
+      ],
+      "objective": "One of the major goals of this investigation was to quantify the sizes that the liquid smoke particulate achieves in low gravity and to relate the droplet size distribution to the smoke generation and smoke transport conditions in the experiment.",
+      "impact": "The SAME experiment will provide technology for an advanced fire detector for future spacecraft that will be used for long duration missions.",
+      "files": {
+        "count": 101,
+        "total_bytes": 657608178,
+        "by_category": {
+          "Investigation Metadata Files": 1,
+          "Engineering Documents": 28,
+          "Reports": 1,
+          "Analyzed Data": 59,
+          "Presentations": 6,
+          "Science Documents": 2,
+          "Reference Data": 3,
+          "Experimental table": 1
+        }
+      }
+    },
+    {
+      "accession": "PSI-47",
+      "acronym": "DAFT / DAFT-2",
+      "title": "Dust and Aerosol Measurement Feasibility Test / Dust and Aerosol Measurement Feasibility Test-2",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Spacecraft Fire Safety",
+      "period": "2003-2009",
+      "flight_program": "International Space Station (ISS)",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "TSI P-Trak",
+      "doi": "10.60555/ztgj-d202",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-47",
+      "related": [
+        "PSI-102"
+      ],
+      "objective": "The focus of DAFT / DAFT-2 was to mitigate the risk for the Smoke Aerosol Measurement Experiment (SAME). SAME relied on a commercially available condensate nuclei counter, the TSI P-Trak, to quantify smoke aerosols in a microgravity environment, however there were concerns that th P-Trak would not...",
+      "impact": "Extended duration space flight missions with larger vessels will require fire detection systems with increased reliability and sensitivity.",
+      "files": {
+        "count": 33,
+        "total_bytes": 41765333,
+        "by_category": {
+          "Investigation Metadata Files": 1,
+          "Reports": 3,
+          "Presentations": 3,
+          "Analyzed Data": 12,
+          "Raw Data": 6,
+          "Engineering Documents": 6,
+          "Representative Image(s)": 1,
+          "Experimental table": 1
+        }
+      }
+    },
+    {
+      "accession": "PSI-115",
+      "acronym": "",
+      "title": "Utilization of the Smoke Aerosol Measurement Experiment Data for Advanced Modeling and Simulation of Smoke Generation in Micro-Gravity",
+      "research_area": "Combustion Science",
+      "sub_research_area": "Smoke Aerosol, Combustion Simulation",
+      "period": "2017-2019",
+      "flight_program": "Not Applicable",
+      "nasa_center": "Glenn Research Center (GRC)",
+      "hardware": "",
+      "doi": "10.60555/q0v5-1v28",
+      "license": "Creative Commons Zero v1.0 Universal",
+      "url": "https://psi.nasa.gov/physci/repo/data/investigations/PSI-115",
+      "related": [
+        "PSI-102"
+      ],
+      "objective": "The objective of this investigation was to use numerical simulation to explore the influence of gravity on pyrolysis smoke growth from a fundamental perspective.",
+      "impact": "Models and tools that characterize particles generated as smoke can be used to ascertain how temperature, gravity, and material properties affect the smoke produced.",
+      "files": {
+        "count": 47,
+        "total_bytes": 264404901,
+        "by_category": {
+          "Investigation Metadata Files": 1,
+          "Analyzed Data": 44,
+          "Reports": 1,
+          "Science Documents": 1
+        }
+      }
+    }
+  ],
+  "datasets": [
+    {
+      "accession": "PSI-98",
+      "acronym": "SAFFIRE-I",
+      "file": "PSI-98_Raw Data_Saffire-I Telemetry Data Good Process Version.xlsx",
+      "size_bytes": 2775737,
+      "sha256": "2e6657842266b80d48bdfef9e6683ff522696a62f95c4b81222bb583b76f9ccf",
+      "sheets": [
+        {
+          "sheet": "CygnusPressureData",
+          "rows": 332,
+          "time_column": "Relative Time (s)",
+          "time_span_s": [
+            9276.34,
+            15967.0
+          ],
+          "columns": {
+            "PCM Press (psi)": {
+              "kind": "signal",
+              "n": 332,
+              "min": 14.47,
+              "max": 14.54,
+              "mean": 14.49,
+              "baseline": 14.47,
+              "t_peak_s": 15566.4,
+              "peak_value": 14.54,
+              "t_onset_s": 12814.8
+            }
+          }
+        },
+        {
+          "sheet": "CygnusTemperatureData",
+          "rows": 322,
+          "time_column": "Relative Time (s)",
+          "time_span_s": [
+            9277.58,
+            15967.6
+          ],
+          "columns": {
+            "PCM Air Temp (degC)": {
+              "kind": "signal",
+              "n": 322,
+              "min": 19.67,
+              "max": 20.18,
+              "mean": 19.84,
+              "baseline": 19.67,
+              "t_peak_s": 15927.2,
+              "peak_value": 20.18,
+              "t_onset_s": 11106.1
+            }
+          }
+        },
+        {
+          "sheet": "CygnusSmokeDetectorData",
+          "rows": 289,
+          "time_column": "Relative Time (s)",
+          "time_span_s": [
+            9283.18,
+            15963.9
+          ],
+          "columns": {
+            "FIZ 2 Smoke Detector Obscuration (V)": {
+              "kind": "signal",
+              "n": 289,
+              "min": -4.395,
+              "max": 3.845,
+              "mean": 3.726,
+              "baseline": 3.83,
+              "t_peak_s": 15523.5,
+              "peak_value": -4.395,
+              "t_onset_s": 9283.18
+            },
+            "FIZ 2 Smoke Detector Scatterometer (V)": {
+              "kind": "signal",
+              "n": 272,
+              "min": 0.01,
+              "max": 2.9,
+              "mean": 0.3668,
+              "baseline": 0.015,
+              "t_peak_s": 15643.6,
+              "peak_value": 2.9,
+              "t_onset_s": 14913.4
+            }
+          }
+        },
+        {
+          "sheet": "CygnusData",
+          "rows": 8072,
+          "time_column": "Relative Time (s)",
+          "time_span_s": [
+            0.0,
+            15967.6
+          ],
+          "columns": {
+            "PCM Press/Temp (psi/K)": {
+              "kind": "signal",
+              "n": 971,
+              "min": 0.04942,
+              "max": 0.04957,
+              "mean": 0.04946,
+              "baseline": 0.04943,
+              "note": "exact zeros treated as no-sample",
+              "t_peak_s": 15566.4,
+              "peak_value": 0.04957,
+              "t_onset_s": 9637.72
+            },
+            "FIZ1 Smoke Detector Obscuration  (V)": {
+              "kind": "constant",
+              "value": -0.005,
+              "n": 323
+            },
+            "FIZ 1 Smoke Detector Scatterometer (V)": {
+              "kind": "constant",
+              "value": 0.0,
+              "n": 2540
+            },
+            "body rate x axis (rad/s)": {
+              "kind": "signal",
+              "n": 647,
+              "min": -0.006091,
+              "max": 0.0001949,
+              "mean": -0.0003967,
+              "baseline": -0.0006369,
+              "note": "exact zeros treated as no-sample",
+              "t_peak_s": 11159.6,
+              "peak_value": -0.006091,
+              "t_onset_s": 11124.2
+            },
+            "body rate y axis (rad/s)": {
+              "kind": "signal",
+              "n": 647,
+              "min": -0.0002604,
+              "max": 0.008961,
+              "mean": 0.0002535,
+              "baseline": -3.507e-05,
+              "note": "exact zeros treated as no-sample",
+              "t_peak_s": 11254.2,
+              "peak_value": 0.008961,
+              "t_onset_s": 11124.2
+            },
+            "body rate z axis (rad/s)": {
+              "kind": "signal",
+              "n": 647,
+              "min": -0.0004287,
+              "max": 0.01245,
+              "mean": 0.001232,
+              "baseline": 2.651e-05,
+              "note": "exact zeros treated as no-sample",
+              "t_peak_s": 11159.6,
+              "peak_value": 0.01245,
+              "t_onset_s": 11124.2
+            },
+            "acceleration x axis (m/s^2)": {
+              "kind": "signal",
+              "n": 633,
+              "min": -0.0006923,
+              "max": 0.0002728,
+              "mean": -2.779e-06,
+              "baseline": 3.426e-05,
+              "note": "exact zeros treated as no-sample",
+              "t_peak_s": 11157.8,
+              "peak_value": -0.0006923,
+              "t_onset_s": 11122.3
+            },
+            "acceleration y axis (m/s^2)": {
+              "kind": "signal",
+              "n": 633,
+              "min": -0.0005973,
+              "max": 0.0003053,
+              "mean": -0.0002579,
+              "baseline": -0.0002611,
+              "note": "exact zeros treated as no-sample",
+              "t_peak_s": 11212.5,
+              "peak_value": 0.0003053
+            },
+            "acceleration z axis (m/s^2)": {
+              "kind": "signal",
+              "n": 633,
+              "min": -0.0006174,
+              "max": 0.0005304,
+              "mean": 8.077e-05,
+              "baseline": 9.143e-05,
+              "note": "exact zeros treated as no-sample",
+              "t_peak_s": 11157.8,
+              "peak_value": -0.0006174,
+              "t_onset_s": 11137.2
+            }
+          }
+        },
+        {
+          "sheet": "SaffireData",
+          "rows": 6083,
+          "time_column": "Relative Time (s)",
+          "time_span_s": [
+            9273.21,
+            15952.1
+          ],
+          "columns": {
+            "Radiometer1Value": {
+              "kind": "signal",
+              "n": 34,
+              "min": -13.07,
+              "max": 128.1,
+              "mean": 13.16,
+              "baseline": -12.58,
+              "t_peak_s": 15472.5,
+              "peak_value": 128.1,
+              "t_onset_s": 15352.5
+            },
+            "Radiometer2Value": {
+              "kind": "signal",
+              "n": 34,
+              "min": -15.62,
+              "max": 121.9,
+              "mean": 11.84,
+              "baseline": -14.51,
+              "t_peak_s": 15352.5,
+              "peak_value": 121.9,
+              "t_onset_s": 15202.6
+            },
+            "Radiometer3Value": {
+              "kind": "signal",
+              "n": 34,
+              "min": -1.188,
+              "max": 136.8,
+              "mean": 25.94,
+              "baseline": -0.7161,
+              "t_peak_s": 15352.5,
+              "peak_value": 136.8,
+              "t_onset_s": 15202.6
+            },
+            "Radiometer4Value": {
+              "kind": "signal",
+              "n": 34,
+              "min": -15.78,
+              "max": 131.9,
+              "mean": 11.93,
+              "baseline": -15.18,
+              "t_peak_s": 15472.5,
+              "peak_value": 131.9,
+              "t_onset_s": 15322.6
+            },
+            "Anemometer1": {
+              "kind": "signal",
+              "n": 103,
+              "min": 0.1163,
+              "max": 32.75,
+              "mean": 6.315,
+              "baseline": 0.1274,
+              "t_peak_s": 9482.84,
+              "peak_value": 32.75,
+              "t_onset_s": 9393.27
+            },
+            "Anemometer2": {
+              "kind": "signal",
+              "n": 103,
+              "min": 0.1973,
+              "max": 29.8,
+              "mean": 5.752,
+              "baseline": 0.2094,
+              "t_peak_s": 9482.84,
+              "peak_value": 29.8,
+              "t_onset_s": 9393.27
+            },
+            "FanTachometer": {
+              "kind": "signal",
+              "n": 103,
+              "min": -185.1,
+              "max": 8139.0,
+              "mean": 1657.0,
+              "baseline": -102.4,
+              "t_peak_s": 9482.84,
+              "peak_value": 8139.0,
+              "t_onset_s": 9393.27
+            },
+            "SmokeWireV": {
+              "kind": "signal",
+              "n": 105,
+              "min": -161.7,
+              "max": -80.84,
+              "mean": -106.0,
+              "baseline": -80.84,
+              "t_peak_s": 15022.2,
+              "peak_value": -161.7,
+              "t_onset_s": 14992.3
+            },
+            "SmokeWireI": {
+              "kind": "signal",
+              "n": 105,
+              "min": -25.17,
+              "max": -0.0009603,
+              "mean": -16.04,
+              "baseline": -12.59,
+              "t_peak_s": 15082.5,
+              "peak_value": -25.17,
+              "t_onset_s": 14992.3
+            },
+            "Sample1IgniterV": {
+              "kind": "signal",
+              "n": 105,
+              "min": -161.7,
+              "max": -80.84,
+              "mean": -102.3,
+              "baseline": -80.84,
+              "t_peak_s": 15142.2,
+              "peak_value": -161.7,
+              "t_onset_s": 15142.2
+            },
+            "Sample1IgniterI": {
+              "kind": "signal",
+              "n": 105,
+              "min": -25.17,
+              "max": -0.001729,
+              "mean": -15.7,
+              "baseline": -12.59,
+              "t_peak_s": 15172.1,
+              "peak_value": -0.001729,
+              "t_onset_s": 15142.2
+            },
+            "Sample2IgniterV": {
+              "kind": "signal",
+              "n": 105,
+              "min": -161.7,
+              "max": -80.84,
+              "mean": -84.67,
+              "baseline": -80.84,
+              "t_peak_s": 15832.7,
+              "peak_value": -161.7,
+              "t_onset_s": 15832.7
+            },
+            "Sample2IgniterI": {
+              "kind": "signal",
+              "n": 105,
+              "min": -25.17,
+              "max": -12.59,
+              "mean": -13.19,
+              "baseline": -12.59,
+              "t_peak_s": 15832.7,
+              "peak_value": -25.17,
+              "t_onset_s": 15832.7
+            },
+            "Sample3IgniterV": {
+              "kind": "constant",
+              "value": -80.84,
+              "n": 105
+            },
+            "Sample3IgniterI": {
+              "kind": "constant",
+              "value": -12.59,
+              "n": 105
+            },
+            "Sample4IgniterV": {
+              "kind": "constant",
+              "value": -80.84,
+              "n": 105
+            },
+            "Sample4IgniterI": {
+              "kind": "constant",
+              "value": -12.59,
+              "n": 105
+            },
+            "Sample5IgniterV": {
+              "kind": "constant",
+              "value": -80.84,
+              "n": 105
+            },
+            "Sample5IgniterI": {
+              "kind": "constant",
+              "value": -12.59,
+              "n": 105
+            },
+            "Sample6IgniterV": {
+              "kind": "constant",
+              "value": -80.84,
+              "n": 105
+            },
+            "Sample6IgniterI": {
+              "kind": "constant",
+              "value": -12.59,
+              "n": 105
+            },
+            "Sample7IgniterV": {
+              "kind": "constant",
+              "value": -80.84,
+              "n": 105
+            },
+            "Sample7IgniterI": {
+              "kind": "constant",
+              "value": -12.59,
+              "n": 105
+            },
+            "Sample8IgniterV": {
+              "kind": "constant",
+              "value": -80.84,
+              "n": 105
+            },
+            "Sample8IgniterI": {
+              "kind": "constant",
+              "value": -12.59,
+              "n": 105
+            },
+            "Sample9IgniterV": {
+              "kind": "constant",
+              "value": -80.84,
+              "n": 105
+            },
+            "Sample9IgniterI": {
+              "kind": "constant",
+              "value": -12.59,
+              "n": 105
+            },
+            "Tach/100": {
+              "kind": "signal",
+              "n": 103,
+              "min": -1.851,
+              "max": 81.39,
+              "mean": 16.57,
+              "baseline": -1.024,
+              "note": "exact zeros treated as no-sample",
+              "t_peak_s": 9482.84,
+              "peak_value": 81.39,
+              "t_onset_s": 9393.27
+            }
+          }
+        }
+      ],
+      "dropped_duplicate_sheets": [
+        "RawData"
+      ]
+    }
+  ]
+}
