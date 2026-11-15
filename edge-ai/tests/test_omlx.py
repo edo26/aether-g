@@ -81,7 +81,7 @@ def test_prompt_contains_the_rules_authoritative_result_and_tags():
     p = prompts.build_prompt(compartment_id="BAY", status="SMOLDERING_ANOMALY", confidence=0.604,
                              dust_check="NOMINAL_NO_EVENT", summary=summary, facts=FACTS)
     for needle in ("Never invent numbers", "demo thresholds", "not an official NASA checklist", "authoritative",
-                   "co_ppm: last 26", "[F1] Saffire VI", "[F2] SAFFIRE-I", "WARNING:", "SOURCES:"):
+                   "CO (ppm): last 26", "CREW ACTION MENU", "WHY:", "[F1] Saffire VI", "[F2] SAFFIRE-I", "WARNING:", "SOURCES:"):
         assert needle in p
     q = prompts.build_prompt(compartment_id="BAY", status="NOMINAL", confidence=0.95, dust_check="NOMINAL_NO_EVENT",
                              summary=None, facts=[], question="  is it safe?  ")
@@ -233,3 +233,16 @@ def test_parse_answer_strips_inline_sources_and_markdown_escapes():
 def test_parse_advisory_unescapes_markdown():
     w, steps, _ = prompts.parse_advisory("WARNING: Smoke in AVIONICS\\_BAY\\_B2\n1. a\\_b\n2. b\n3. c\nSOURCES: none", FACTS)
     assert w == "Smoke in AVIONICS_BAY_B2" and steps[0] == "a_b"
+
+
+def test_parse_advisory_rejects_repeated_steps():
+    # gemma-4-E4B once answered "Follow the vehicle's approved checklist." three times: use the fallback instead.
+    with pytest.raises(prompts.ParseError):
+        prompts.parse_advisory("WARNING: x\n1. Follow the checklist.\n2. Follow the checklist.\n3. follow the checklist\nSOURCES: none", FACTS)
+
+
+def test_why_line_joins_the_warning_and_cites_its_tag():
+    w, steps, cited = prompts.parse_advisory(
+        "WARNING: CO is 27 ppm in BAY.\nWHY: Saffire VI saw CO rise before temperature [F1].\n1. a\n2. b\n3. c\nSOURCES:", FACTS)
+    assert w == "CO is 27 ppm in BAY. Saffire VI saw CO rise before temperature."
+    assert [f.id for f in cited] == [FACTS[0].id]
