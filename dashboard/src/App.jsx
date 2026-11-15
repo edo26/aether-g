@@ -6,6 +6,7 @@ import GemmaPanel from "./components/GemmaPanel.jsx";
 import MasterStatus from "./components/MasterStatus.jsx";
 import { SCENARIOS, STALE_AFTER_MS, useSource } from "./lib/useSource.js";
 import { useThermal } from "./lib/useThermal.js";
+import { useAdvisory } from "./lib/useAdvisory.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 const SCENARIO_NOTE = {
@@ -47,6 +48,7 @@ export default function App() {
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(i); }, []);
 
   const frame = frames[frames.length - 1];
+  const advisory = useAdvisory({ enabled: source === "live", apiBase: API_BASE, compartmentId: frame?.compartment_id });
   const thermal = useThermal({ enabled: source === "live", apiBase: API_BASE, compartmentId: frame?.compartment_id });
   const ageMs = lastRxAt ? Math.max(0, now - lastRxAt) : null;
   const stale = source === "live" && (state === "disconnected" || state === "error" || (ageMs != null && ageMs > STALE_AFTER_MS));
@@ -115,7 +117,7 @@ export default function App() {
       <MasterStatus frames={frames} stale={stale} ageS={ageMs != null ? ageMs / 1000 : null} />
 
       <main className="layout">
-        <div className="area-advisory"><GemmaPanel advisory={null} stage1Alarm={alarm} /></div>
+        <div className="area-advisory"><GemmaPanel advisory={advisory} live={source === "live"} status={frame?.stage1_detector.status} stage1Alarm={alarm} now={now} /></div>
 
         <section className="panel area-trends" aria-labelledby="trends-h">
           <div className="panel-head">

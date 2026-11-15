@@ -265,6 +265,18 @@ button:active { box-shadow: var(--shadow-inset); }
 .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 11px; background: var(--well); box-shadow: var(--shadow-inset); }
 .step-n { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surface-hi); color: var(--info); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 2px 4px rgba(0, 0, 0, 0.4); font-size: 13px; }
+.adv-run, .adv-final { display: grid; gap: 10px; }
+.adv-stream { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--well); box-shadow: var(--shadow-inset); }
+.adv-stream p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-2); white-space: pre-wrap; word-break: break-word; }
+.caret { display: inline-block; width: 7px; height: 14px; margin-left: 2px; vertical-align: -2px; background: var(--info); }
+@media (prefers-reduced-motion: no-preference) { .caret { animation: caret 1s steps(1) infinite; } }
+@keyframes caret { 50% { opacity: 0; } }
+.adv-note { margin: 0; padding: 8px 12px; border-radius: 10px; font-size: 13px; color: var(--caution); background: color-mix(in srgb, var(--caution) 10%, var(--well)); }
+.adv-cites { display: grid; gap: 4px; font-size: 13.5px; }
+.adv-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin: 0; }
+.adv-meta > div { padding: 8px 10px; border-radius: 10px; background: var(--well); box-shadow: var(--shadow-inset); display: grid; gap: 2px; }
+.adv-meta dt { font-size: 10.5px; }
+.adv-meta dd { margin: 0; font-size: 13px; color: var(--text-2); }
 .adv-empty { display: grid; justify-items: start; gap: 8px; padding: 18px; border-radius: 13px; background: var(--well); box-shadow: var(--shadow-inset); }
 .adv-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-hi); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 4px 10px rgba(0, 0, 0, 0.45); }
 .adv-icon svg { width: 20px; height: 20px; fill: none; stroke: var(--info); stroke-width: 1.8; stroke-linejoin: round; }

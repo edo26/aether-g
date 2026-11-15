@@ -3,7 +3,7 @@ import { validateThermal } from "./thermal.js";
 
 const POLL_MS = 500;
 
-/** Polls the latest thermal camera frame while `enabled` (live mode). 404 simply means no camera yet. */
+/** Polls the latest thermal camera frame while `enabled` (live mode). 204 simply means no camera yet. */
 export function useThermal({ enabled, apiBase, compartmentId }) {
   const [state, setState] = useState({ frame: null, fetchedAt: null });
 
@@ -15,7 +15,7 @@ export function useThermal({ enabled, apiBase, compartmentId }) {
       try {
         const q = compartmentId ? `?compartment_id=${encodeURIComponent(compartmentId)}` : "";
         const res = await fetch(`${apiBase}/thermal${q}`, { signal: ac.signal });
-        if (res.status === 404) { setState({ frame: null, fetchedAt: null }); return; }
+        if (res.status === 204 || res.status === 404) { setState({ frame: null, fetchedAt: null }); return; }
         if (!res.ok) return;
         const f = await res.json();
         if (validateThermal(f).length) return;
