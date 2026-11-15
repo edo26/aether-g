@@ -54,7 +54,7 @@ python3 simulator/simulator.py --scenario airgapped --interval-ms 500
 
 Run each command separately. Dust keeps `stage1_detector.status` at `NOMINAL` and sets the dust-rejection marker. Smoldering crosses the demo threshold after about 10.5 seconds and reaches 125 ppm CO at 60 seconds. `airgapped` works with Wi-Fi disabled. The simulator needs no packages, models, server, credentials, or network access.
 
-The full local AI demo will also need a pre-provisioned Ollama model, local RAG facts, and a built dashboard. Those components are not included yet. See the [simulator guide](simulator/README.md) and [three-minute demo script](docs/demo-script.md).
+To see the same scenarios on the deployed dashboard (https://aether-g.fakhrads.dev) with Gemma advisories, send them to the live backend with `edge-ai/tools/feed.py`: see [Send simulated data to the live backend](edge-ai/README.md#send-simulated-data-to-the-live-backend-team). The fully offline demo (everything on the Jetson) still needs a local model server and the assets provisioned on the device. See the [simulator guide](simulator/README.md) and [three-minute demo script](docs/demo-script.md).
 
 ## JSON contract
 
