@@ -14,7 +14,7 @@ const MAX_FRAMES = 400;
  */
 export function useSource({ source, scenario, apiBase }) {
   const [frames, setFrames] = useState([]);
-  const [state, setState] = useState("connecting"); // connecting | playing | finished | live | disconnected | error
+  const [state, setState] = useState("connecting"); // connecting | playing | finished | live | waiting | disconnected | error
   const [error, setError] = useState(null);
   const [lastRxAt, setLastRxAt] = useState(null);
   const [epoch, setEpoch] = useState(0);
@@ -49,7 +49,11 @@ export function useSource({ source, scenario, apiBase }) {
           const res = await fetch(`${apiBase}/status`, { signal: ac.signal });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const body = await res.json();
-          const f = body && body.latest ? body.latest : body; // shape not yet agreed with backend
+          // The backend answers {compartments, latest}; latest is null until the first sample arrives.
+          if (body && typeof body === "object" && "latest" in body && body.latest === null) {
+            setError(null); setState("waiting"); return;
+          }
+          const f = body && body.latest ? body.latest : body;
           const problems = validateFrame(f);
           if (problems.length) { setError(`rejected frame: ${problems[0]}`); setState("error"); return; }
           setError(null); setState("live"); setLastRxAt(Date.now());

@@ -59,6 +59,7 @@ export default function App() {
     : state === "live" ? { cls: "ok", text: "Live" }
     : state === "playing" ? { cls: "info", text: "Replay" }
     : state === "finished" ? { cls: "muted", text: "Replay ended" }
+    : state === "waiting" ? { cls: "muted", text: "No data yet" }
     : state === "error" ? { cls: "alarm", text: "Error" }
     : { cls: "muted", text: "Connecting" };
 
