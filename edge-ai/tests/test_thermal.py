@@ -44,12 +44,12 @@ def test_accepts_frame_and_returns_stats(client):
 
 
 def test_get_latest_frame(client):
-    assert client.get("/api/v1/thermal").status_code == 404
+    assert client.get("/api/v1/thermal").status_code == 204
     client.post("/api/v1/thermal", json=frame(), headers={**H, "X-Aether-Source": "simulator"})
     j = client.get("/api/v1/thermal", params={"compartment_id": "AVIONICS_BAY_B2"}).json()
     assert j["source"] == "simulator" and j["width"] == 32 and len(j["pixels_c"]) == 768
     assert j["age_s"] >= 0 and j["hotspot"]["x"] == 20
-    assert client.get("/api/v1/thermal", params={"compartment_id": "OTHER"}).status_code == 404
+    assert client.get("/api/v1/thermal", params={"compartment_id": "OTHER"}).status_code == 204
     assert client.get("/api/v1/health").json()["thermal"]["AVIONICS_BAY_B2"]["sensor"] == "MLX90640"
 
 

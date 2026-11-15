@@ -220,3 +220,16 @@ async def test_ask_mode_returns_answer_without_steps():
     assert adv.warning == "CO crossed the 25 ppm demo threshold." and adv.steps == []
     assert adv.facts_used == ["NTRS-20240002981"]
     await c.stop()
+
+
+def test_parse_answer_strips_inline_sources_and_markdown_escapes():
+    # Seen from gemma-4-E4B: SOURCES on the same line, and escaped underscores in the compartment id.
+    ans, cited = prompts.parse_answer(
+        "ANSWER: The detector flags AVIONICS\\_BAY\\_B2. The dust check is nominal. SOURCES: none", FACTS)
+    assert ans == "The detector flags AVIONICS_BAY_B2. The dust check is nominal."
+    assert cited == []
+
+
+def test_parse_advisory_unescapes_markdown():
+    w, steps, _ = prompts.parse_advisory("WARNING: Smoke in AVIONICS\\_BAY\\_B2\n1. a\\_b\n2. b\n3. c\nSOURCES: none", FACTS)
+    assert w == "Smoke in AVIONICS_BAY_B2" and steps[0] == "a_b"

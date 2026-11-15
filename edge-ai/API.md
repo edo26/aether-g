@@ -139,7 +139,7 @@ Over USB serial, send the frame as its own JSON line next to the telemetry lines
 
 ### `GET /thermal?compartment_id=`
 
-Latest frame (the body above) plus `source`, `received_at`, `age_s` and the stats. Without `compartment_id`, the most recent frame of any compartment. `404` until a frame arrives. The dashboard polls this every 500 ms in live mode and shows the measured image while `age_s` is under 3 s, otherwise the schematic estimate.
+Latest frame (the body above) plus `source`, `received_at`, `age_s` and the stats. Without `compartment_id`, the most recent frame of any compartment. `204` (no body) until a frame arrives. The dashboard polls this every 500 ms in live mode and shows the measured image while `age_s` is under 3 s, otherwise the schematic estimate.
 
 ## `GET /stream`: Server-Sent Events
 

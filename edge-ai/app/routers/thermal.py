@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, Header, Query, Request, Response
 
 from app.contract import ThermalFrame
 from app.routers.ingest import Source, require_device_token
@@ -108,7 +108,7 @@ async def post_thermal(
 
 @router.get("/thermal", summary="Latest thermal camera frame", description=(
     "Latest frame for `compartment_id` (or the most recent of any compartment), with `age_s`, `source` "
-    "and stats. 404 when no frame has been received."))
+    "and stats. 204 (no body) when no frame has been received, so polling without a camera logs no errors."))
 async def get_thermal(
     request: Request,
     compartment_id: Annotated[str | None, Query(examples=["AVIONICS_BAY_B2"])] = None,
@@ -116,7 +116,7 @@ async def get_thermal(
     state = request.app.state.thermal
     entry = state.get(compartment_id)
     if entry is None:
-        raise HTTPException(status_code=404, detail="no thermal frame received yet")
+        return Response(status_code=204)
     return {
         **entry.frame.model_dump(),
         "source": entry.source,
