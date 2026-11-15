@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     cors_origins: str = "*"
 
     @property
+    def omlx_configured(self) -> bool:
+        # the .env.example placeholders start with "<" and mean "not set"
+        return bool(self.omlx_base_url and self.omlx_model) and not self.omlx_base_url.startswith("<") \
+            and not self.omlx_model.startswith("<")
+
+    @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 

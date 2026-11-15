@@ -13,12 +13,14 @@ def build_health(app) -> dict[str, Any]:
         cid: {"last_ingest_age_s": live.age_s(latest), "source": latest.source, "mode": latest.sample.mode}
         for cid, latest in sorted(live.all().items())
     }
+    llm = app.state.worker.llm
     degraded = store_health["status"] == "down"
     return {
         "status": "degraded" if degraded else "ok",
         "influx": store_health,
         "sqlite": {"status": "up", "path": app.state.db.path, **app.state.db.counts()},
-        "advisor": {"rag_facts": len(app.state.rag.facts), "llm": "not_configured" if app.state.worker.llm is None else "configured"},
+        "omlx": llm.health() if hasattr(llm, "health") else {"status": "not_configured"},
+        "advisor": {"rag_facts": len(app.state.rag.facts), "dropped_triggers": app.state.worker.dropped},
         "compartments": ingest,
         "sse_subscribers": app.state.broker.subscribers,
     }
@@ -26,6 +28,6 @@ def build_health(app) -> dict[str, Any]:
 
 @router.get("/health", summary="Service health", description=(
     "Influx state and outage buffer, last-ingest age per compartment. "
-    "oMLX reachability is added in Phase 4."))
+    "oMLX reachability and model id. LLM down does not make the alarm path degraded: advisories fall back to deterministic text."))
 async def health(request: Request):
     return build_health(request.app)

@@ -193,3 +193,37 @@ async def test_window_prefers_influx_and_falls_back_on_error():
     assert (await w.window_summary("AVIONICS_BAY_B2"))["source"] == "influxdb"
     store.down = True
     assert (await w.window_summary("AVIONICS_BAY_B2"))["source"] == "memory"
+
+
+# ---- worker + real client wiring ----------------------------------------------------------
+async def test_llm_failure_stores_fallback_and_event_and_alarm_is_unaffected():
+    from app.advisor.omlx import LlmError
+
+    class Down:
+        async def advise(self, **kw):
+            raise LlmError("first_token_timeout", "no token within 6 s")
+
+    w, det, live, store, db, broker = make_worker(llm=Down())
+    q = broker.subscribe()
+    last = feed(w, det, live, "smoldering", 25)
+    assert last.status == "SMOLDERING_ANOMALY"  # the detector result never depended on the LLM
+    await settle(w)
+    a = db.advisories()[0]
+    assert a["fallback"] is True and a["model"] == "deterministic" and len(a["steps"]) == 3
+    ev = db.events()
+    assert ev[0]["kind"] == "advisory_fallback" and ev[0]["detail"]["reason"] == "first_token_timeout"
+    msgs = []
+    while not q.empty():
+        msgs.append(q.get_nowait())
+    start = next(d for e, d in msgs if e == "advisory_start")
+    assert start["llm"] is True and start["preliminary"]["steps"] and "Smoldering anomaly" in start["preliminary"]["warning"]
+    assert [e for e, _ in msgs][-1] == "advisory_done"
+
+
+async def test_llm_success_persists_model_and_first_token():
+    w, det, live, store, db, broker = make_worker(llm=SlowLLM())
+    w.llm.release.set()
+    feed(w, det, live, "smoldering", 25)
+    await settle(w)
+    a = db.advisories()[0]
+    assert a["fallback"] is False and a["model"] == "fake" and a["first_token_ms"] == 50

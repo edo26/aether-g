@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
+from app.advisor.omlx import OmlxClient
 from app.advisor.rag import Rag
 from app.advisor.worker import AdvisorWorker
 from app.detector import Detector
@@ -38,6 +39,8 @@ def create_app(*, store=None, db=None, rag=None, llm=None) -> FastAPI:
     async def lifespan(app: FastAPI):
         await app.state.store.start()
         await app.state.worker.start()
+        if hasattr(app.state.worker.llm, "start"):
+            await app.state.worker.llm.start()
         tasks = [asyncio.create_task(_health_loop(app), name="health-events")]
         try:
             yield
@@ -47,6 +50,8 @@ def create_app(*, store=None, db=None, rag=None, llm=None) -> FastAPI:
             for t in tasks:
                 with contextlib.suppress(asyncio.CancelledError):
                     await t
+            if hasattr(app.state.worker.llm, "stop"):
+                await app.state.worker.llm.stop()
             await app.state.worker.stop()
             await app.state.store.stop()
             app.state.db.close()
@@ -69,6 +74,11 @@ def create_app(*, store=None, db=None, rag=None, llm=None) -> FastAPI:
     app.state.live = LiveState()
     app.state.pipeline = Pipeline(app.state.detector, app.state.store, app.state.broker, app.state.live)
 
+    if llm is None and settings.omlx_configured:
+        llm = OmlxClient(
+            settings.omlx_base_url, settings.omlx_model, settings.omlx_api_key,
+            first_token_timeout_s=settings.llm_first_token_timeout_s,
+            connect_timeout_s=settings.llm_connect_timeout_s, total_timeout_s=settings.llm_total_timeout_s)
     app.state.db = db or Db(settings.sqlite_path)
     app.state.rag = rag or Rag.load(settings.rag_brief, settings.rag_manual)
     app.state.worker = AdvisorWorker(
@@ -76,6 +86,8 @@ def create_app(*, store=None, db=None, rag=None, llm=None) -> FastAPI:
         rag=app.state.rag, broker=app.state.broker, period_s=settings.advisory_period_s, llm=llm)
     events = EventLog(app.state.db)
     app.state.pipeline.on_result += [events.on_result, app.state.worker.on_result]
+    if llm is not None and hasattr(llm, "on_transition"):
+        llm.on_transition.append(events.on_outage)
     if hasattr(app.state.store, "on_outage"):
         app.state.store.on_outage.append(events.on_outage)
 

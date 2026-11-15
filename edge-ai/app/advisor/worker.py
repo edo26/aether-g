@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable
 
 from app.advisor import fallback
+from app.advisor.omlx import LlmError
 from app.advisor.rag import Rag
 from app.advisor.summary import CHANNELS, summarize
 from app.contract import Sample
@@ -128,18 +129,26 @@ class AdvisorWorker:
             if latest is None:
                 return
             status = latest.result.status
+            quick = fallback.build(trigger, cid, status, summarize(self.live.window(cid, WINDOW_S), WINDOW_S, "memory"), [])
             self.broker.publish("advisory_start", {
                 "run_id": run_id, "compartment_id": cid, "trigger": trigger, "status": status,
-                "started_at": datetime.now(timezone.utc).isoformat()})
+                "started_at": datetime.now(timezone.utc).isoformat(), "llm": self.llm is not None and trigger != "dust_rejected",
+                "preliminary": {"warning": quick.warning, "steps": quick.steps, "model": quick.model}})
             summary = await self.window_summary(cid)
             query = BASE_QUERY.get(status, BASE_QUERY["NOMINAL"]) + (f" {question}" if question else "")
             facts = self.rag.retrieve(query, 4)
-            if trigger == "dust_rejected" or self.llm is None:
+            adv = None
+            if trigger != "dust_rejected" and self.llm is not None:
+                try:
+                    adv = await self.llm.advise(
+                        cid=cid, trigger=trigger, run_id=run_id, status=status,
+                        confidence=latest.result.confidence_score, dust_check=latest.result.false_alarm_dust_check,
+                        summary=summary, facts=facts, question=question, broker=self.broker, t0=t0)
+                except LlmError as exc:
+                    log.warning("LLM failed for %s (%s); using deterministic advisory", cid, exc)
+                    self.db.add_event("advisory_fallback", cid, {"trigger": trigger, "reason": exc.kind, "detail": str(exc)[:300]})
+            if adv is None:
                 adv = fallback.build(trigger, cid, status, summary, facts, question=question)
-            else:
-                adv = await self.llm.advise(  # Phase 4
-                    cid=cid, trigger=trigger, run_id=run_id, status=status, confidence=latest.result.confidence_score,
-                    summary=summary, facts=facts, question=question, broker=self.broker)
             latency_ms = int((self._clock() - t0) * 1000)
             advisory_id = self.db.add_advisory(
                 compartment_id=cid, trigger=trigger, status=status, confidence=latest.result.confidence_score,
