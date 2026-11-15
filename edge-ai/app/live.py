@@ -38,6 +38,8 @@ class LiveState:
                "airflow_cm_s": t.airflow_cm_s, "max_ir_temp_c": t.max_ir_temp_c,
                "smolder_velocity_mm_s": t.smolder_velocity_mm_s,
                "tc1_c": t.thermocouples_c[0], "tc2_c": t.thermocouples_c[1], "tc3_c": t.thermocouples_c[2]}
+        if result.reset_reason:  # a new session: never mix its window with the previous one
+            self._ring.pop(sample.compartment_id, None)
         self._ring.setdefault(sample.compartment_id, deque(maxlen=480)).append(row)  # 4 min at 2 Hz
 
     def window(self, compartment_id: str, seconds: float) -> list[dict]:

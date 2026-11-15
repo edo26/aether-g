@@ -69,19 +69,23 @@ class AdvisorWorker:
 
     def trigger(self, compartment_id: str, trigger: str, *, question: str | None = None) -> bool:
         """Start a generation unless one of equal or higher priority is running. Returns accepted."""
+        return self.start_run(compartment_id, trigger, question=question) is not None
+
+    def start_run(self, compartment_id: str, trigger: str, *, question: str | None = None) -> str | None:
+        """Like `trigger`, but returns the run_id (carried by the SSE events) or None when dropped."""
         prio = PRIORITY[trigger]
         current = self._running.get(compartment_id)
         if current is not None:
             if prio <= current.priority:
                 self.dropped += 1
                 log.info("advisor trigger %s for %s dropped (running priority %d)", trigger, compartment_id, current.priority)
-                return False
+                return None
             current.task.cancel()  # escalation replaces the running generation
         run_id = uuid.uuid4().hex[:12]
         task = asyncio.get_running_loop().create_task(
             self._execute(compartment_id, trigger, run_id, question), name=f"advisor-{compartment_id}")
         self._running[compartment_id] = _Running(prio, task, run_id)
-        return True
+        return run_id
 
     def is_running(self, compartment_id: str) -> bool:
         return compartment_id in self._running
@@ -155,6 +159,8 @@ class AdvisorWorker:
                 window_summary=summary, facts_used=adv.facts_used, model=adv.model, latency_ms=latency_ms,
                 first_token_ms=adv.first_token_ms, warning=adv.warning, steps=adv.steps,
                 citations=adv.citations, raw_text=adv.raw_text, fallback=int(adv.fallback))
+            if trigger == "ask":
+                self.db.add_chat(cid, "assistant", adv.warning, advisory_id)
             self.broker.publish("advisory_done", {
                 "run_id": run_id, "cancelled": False, "advisory": {**self.db.advisory(advisory_id), "disclaimer": fallback.DISCLAIMER}})
         except asyncio.CancelledError:

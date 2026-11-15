@@ -301,16 +301,33 @@ class InfluxStore:
         )
 
     async def window(self, compartment_id: str, seconds: float) -> list[dict[str, Any]]:
-        """Raw (not downsampled) telemetry rows of the last `seconds`, each with `t_s` (epoch seconds)."""
+        """Raw (not downsampled) telemetry rows of the last `seconds`, each with `t_s` in seconds.
+
+        `t_s` is the source's `session_ts_ms`, because the server receive time is compressed when
+        the Jetson posts a batch. Rows from before the latest session reset (timestamp going
+        backwards) are dropped so a summary never mixes two sessions.
+        """
         flux = (
             self._base("telemetry", compartment_id, seconds)
-            + "  |> filter(fn: (r) => r._field != \"session_ts_ms\")\n"
             + "  |> group(columns: [\"_field\"])\n  |> sort(columns: [\"_time\"])\n"
             + "  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n"
         )
-        rows = await self._query(flux)
-        return [{**{k: v for k, v in r.items() if not k.startswith("_") and k not in ("result", "table")},
-                 "t_s": r["_time"].timestamp()} for r in rows]
+        rows = sorted(await self._query(flux), key=lambda r: r["_time"])
+        if all(r.get("session_ts_ms") is not None for r in rows):
+            # keep only the current session: everything after the last time `session_ts_ms` went backwards
+            start = 0
+            for i in range(1, len(rows)):
+                if rows[i]["session_ts_ms"] < rows[i - 1]["session_ts_ms"]:
+                    start = i
+            rows = rows[start:]
+            t_of = lambda r: r["session_ts_ms"] / 1000.0  # noqa: E731
+        else:
+            t_of = lambda r: r["_time"].timestamp()  # noqa: E731
+        return [
+            {**{k: v for k, v in r.items() if not k.startswith("_") and k not in ("result", "table", "session_ts_ms")},
+             "t_s": t_of(r)}
+            for r in rows
+        ]
 
     async def series(self, compartment_id: str, range_s: float, every_s: float) -> list[dict[str, Any]]:
         """Downsampled telemetry for charts, merged with detector anomaly/confidence per window."""

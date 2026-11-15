@@ -190,3 +190,72 @@ def test_end_to_end_smoldering_run_one_status_change_one_advisory_with_citations
         ev = app.state.db.events()
         assert [e["kind"] for e in ev] == ["status_change"] and ev[0]["detail"]["to"] == "SMOLDERING_ANOMALY"
     get_settings.cache_clear()
+
+
+def test_ask_events_chat_flow(monkeypatch):
+    import time
+
+    from app.advisor.rag import Rag
+    from app.config import get_settings
+
+    monkeypatch.setenv("AETHER_DEVICE_TOKEN", "dev-device-token")
+    get_settings.cache_clear()
+    app = create_app(store=FakeStore(), db=Db(":memory:"), rag=Rag())
+    with TestClient(app) as c:
+        r = c.post("/api/v1/ask", json={"compartment_id": "AVIONICS_BAY_B2", "question": "why?"})
+        assert r.status_code == 404  # nothing ingested yet
+        post(c, simulate("nominal", 1)[0])
+        assert c.post("/api/v1/ask", json={"compartment_id": "AVIONICS_BAY_B2", "question": ""}).status_code == 422
+        assert c.post("/api/v1/ask", json={"compartment_id": "AVIONICS_BAY_B2", "question": "x" * 501}).status_code == 422
+        q = app.state.broker.subscribe()
+        r = c.post("/api/v1/ask", json={"compartment_id": "AVIONICS_BAY_B2", "question": "Is it safe?"})
+        assert r.status_code == 202
+        run_id = r.json()["run_id"]
+        for _ in range(100):
+            msgs = c.get("/api/v1/chat", params={"compartment_id": "AVIONICS_BAY_B2"}).json()["messages"]
+            if len(msgs) == 2:
+                break
+            time.sleep(0.02)
+        assert [m["role"] for m in msgs] == ["assistant", "user"] and msgs[1]["content"] == "Is it safe?"
+        assert msgs[0]["advisory_id"] is not None
+        adv = c.get("/api/v1/advisories").json()["advisories"][0]
+        assert adv["trigger"] == "ask" and adv["fallback"] is True and adv["id"] == msgs[0]["advisory_id"]
+        names = []
+        while not q.empty():
+            e, d = q.get_nowait()
+            names.append((e, d.get("run_id")))
+        assert ("advisory_start", run_id) in names and ("advisory_done", run_id) in names
+
+        for s in simulate("smoldering", 25):
+            post(c, s)
+        ev = c.get("/api/v1/events", params={"limit": 5}).json()["events"]
+        assert ev and ev[0]["kind"] == "status_change" and ev[0]["compartment_id"] == "AVIONICS_BAY_B2"
+        assert c.get("/api/v1/events", params={"compartment_id": "NOPE"}).json()["events"] == []
+        assert c.get("/api/v1/events", params={"limit": 0}).status_code == 422
+    get_settings.cache_clear()
+
+
+def test_ask_is_refused_with_409_while_an_alarm_advisory_runs(monkeypatch):
+    import time
+
+    from app.advisor.rag import Rag
+    from app.config import get_settings
+
+    class Hanging:
+        async def advise(self, **kw):
+            await asyncio.sleep(30)
+
+    monkeypatch.setenv("AETHER_DEVICE_TOKEN", "dev-device-token")
+    get_settings.cache_clear()
+    app = create_app(store=FakeStore(), db=Db(":memory:"), rag=Rag(), llm=Hanging())
+    with TestClient(app) as c:
+        for s in simulate("smoldering", 25):
+            post(c, s)
+        for _ in range(100):
+            if app.state.worker.is_running("AVIONICS_BAY_B2"):
+                break
+            time.sleep(0.02)
+        r = c.post("/api/v1/ask", json={"compartment_id": "AVIONICS_BAY_B2", "question": "again?"})
+        assert r.status_code == 409 and "busy" in r.json()["detail"]
+        assert c.get("/api/v1/chat").json()["messages"] == []  # a refused question is not saved
+    get_settings.cache_clear()

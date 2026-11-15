@@ -227,3 +227,14 @@ async def test_llm_success_persists_model_and_first_token():
     await settle(w)
     a = db.advisories()[0]
     assert a["fallback"] is False and a["model"] == "fake" and a["first_token_ms"] == 50
+
+
+def test_memory_window_is_cleared_on_session_reset():
+    det, live = Detector(), LiveState()
+    for s in samples("smoldering", 80):  # 40 s, CO up to 85 ppm
+        live.update(s, det.process(s), "simulator")
+    assert max(r["co_ppm"] for r in live.window("AVIONICS_BAY_B2", 60)) > 80.0
+    for s in samples("smoldering", 5):  # restart: timestamp goes back to 0
+        live.update(s, det.process(s), "simulator")
+    rows = live.window("AVIONICS_BAY_B2", 60)
+    assert len(rows) == 5 and max(r["co_ppm"] for r in rows) < 10

@@ -34,6 +34,9 @@ def create_app(*, store=None, db=None, rag=None, llm=None) -> FastAPI:
     """`store`, `db`, `rag`, `llm` are injectable so tests never touch real services."""
     settings = get_settings()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    if settings.device_token in ("", "change-me") or settings.influx_token == "change-me":
+        logging.getLogger("aether").warning(
+            "AETHER_DEVICE_TOKEN / AETHER_INFLUX_TOKEN still use the 'change-me' placeholder: do not expose this instance")
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):

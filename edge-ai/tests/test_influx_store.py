@@ -170,3 +170,30 @@ def test_parse_duration(text, seconds):
 def test_parse_duration_rejects(text):
     with pytest.raises(ValueError):
         parse_duration_s(text)
+
+
+async def test_window_uses_session_time_so_batches_do_not_distort_slopes(store):
+    t = utc(2026, 11, 15, 12, 0, 0)  # a whole batch received in the same instant
+    store.backend.query_rows = [{"_time": t, "session_ts_ms": 500 * i, "co_ppm": 10.0 + i, "result": "_result", "table": 0}
+                                for i in range(5)]
+    rows = await store.window("AVIONICS_BAY_B2", 60)
+    assert [r["t_s"] for r in rows] == [0.0, 0.5, 1.0, 1.5, 2.0]
+    assert "session_ts_ms" not in rows[0] and "table" not in rows[0] and rows[0]["co_ppm"] == 10.0
+    from app.advisor.summary import summarize
+    assert summarize(rows, 60, "influxdb")["channels"]["co_ppm"]["slope_per_s"] == 2.0
+
+
+async def test_window_keeps_only_the_current_session(store):
+    base = utc(2026, 11, 15, 12, 0, 0)
+    from datetime import timedelta
+    store.backend.query_rows = [
+        {"_time": base + timedelta(seconds=i), "session_ts_ms": v, "co_ppm": float(c)}
+        for i, (v, c) in enumerate([(10000, 90), (10500, 95), (0, 5), (500, 6), (1000, 7)])]
+    rows = await store.window("A", 60)
+    assert [r["t_s"] for r in rows] == [0.0, 0.5, 1.0] and [r["co_ppm"] for r in rows] == [5.0, 6.0, 7.0]
+
+
+async def test_window_without_session_field_uses_receive_time(store):
+    base = utc(2026, 11, 15, 12, 0, 0)
+    store.backend.query_rows = [{"_time": base, "co_ppm": 1.0}]
+    assert (await store.window("A", 60))[0]["t_s"] == base.timestamp()
