@@ -125,6 +125,22 @@ Header `X-Device-Token: <token>`, optional `X-Aether-Source: jetson | simulator 
 ```
 `401` bad token, `422` contract violation (the body lists `loc` and `msg`; it never echoes the input).
 
+### `POST /thermal`: thermal camera frame (Jetson / ESP32)
+
+Same headers as `/ingest`. One MLX90640 frame (32x24 = 768 pixels, °C, row-major: `pixels_c[y * 32 + x]`). `sensor` defaults to `MLX90640`; `MLX90641` (16x12) is also accepted. Values must be finite and within -40..400 °C.
+
+```json
+{"timestamp_ms": 10500, "compartment_id": "AVIONICS_BAY_B2", "sensor": "MLX90640",
+ "width": 32, "height": 24, "pixels_c": [24.1, 24.0, "... 768 values ..."]}
+```
+Response: `{compartment_id, timestamp_ms, min_c, max_c, mean_c, hotspot: {x, y, temp_c}}`. Frames are kept in memory (latest per compartment) and are not written to InfluxDB. They do not feed the detector: keep sending the frame maximum as `max_ir_temp_c` in the telemetry envelope to `/ingest`.
+
+Over USB serial, send the frame as its own JSON line next to the telemetry lines; `tools/feed.py --stdin` routes lines with `pixels_c` here and everything else to `/ingest`.
+
+### `GET /thermal?compartment_id=`
+
+Latest frame (the body above) plus `source`, `received_at`, `age_s` and the stats. Without `compartment_id`, the most recent frame of any compartment. `404` until a frame arrives. The dashboard polls this every 500 ms in live mode and shows the measured image while `age_s` is under 3 s, otherwise the schematic estimate.
+
 ## `GET /stream`: Server-Sent Events
 
 ```js

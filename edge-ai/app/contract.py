@@ -6,7 +6,7 @@ only the two detector statuses and the two dust-check values.
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StrictStr, model_validator
 
 Mode = Literal["LIVE_IOT", "NASA_REPLAY"]
 Status = Literal["NOMINAL", "SMOLDERING_ANOMALY"]
@@ -53,3 +53,29 @@ class Sample(_Strict):
 
 class IngestBatch(_Strict):
     items: Annotated[list[Sample], Field(min_length=1, max_length=100)]
+
+
+# ---- Thermal camera frames: a separate transport, NOT part of the telemetry envelope ----------
+# The envelope keeps only max_ir_temp_c; full MLX90640/MLX90641 frames go to POST /api/v1/thermal.
+THERMAL_SHAPES = {"MLX90640": (32, 24), "MLX90641": (16, 12)}
+THERMAL_MIN_C, THERMAL_MAX_C = -40.0, 400.0  # MLX90640 measures -40..300 °C; headroom for calibration
+
+
+class ThermalFrame(_Strict):
+    """One thermal camera frame, row-major (`pixels_c[y * width + x]`), °C."""
+
+    timestamp_ms: Annotated[StrictInt, Field(ge=0)]
+    compartment_id: Annotated[StrictStr, Field(min_length=1)]
+    sensor: Literal["MLX90640", "MLX90641"] = "MLX90640"
+    width: StrictInt
+    height: StrictInt
+    pixels_c: Annotated[list[Annotated[Num, Field(ge=THERMAL_MIN_C, le=THERMAL_MAX_C)]], Field(min_length=192, max_length=768)]
+
+    @model_validator(mode="after")
+    def _shape(self) -> "ThermalFrame":
+        if (self.width, self.height) != THERMAL_SHAPES[self.sensor]:
+            w, h = THERMAL_SHAPES[self.sensor]
+            raise ValueError(f"{self.sensor} frames are {w}x{h}, got {self.width}x{self.height}")
+        if len(self.pixels_c) != self.width * self.height:
+            raise ValueError(f"pixels_c must hold width*height = {self.width * self.height} values, got {len(self.pixels_c)}")
+        return self
