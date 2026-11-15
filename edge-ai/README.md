@@ -16,6 +16,10 @@ FastAPI service in `app/`: contract validation, Stage-1 detector, InfluxDB (tele
 
 Measured so far (this machine, simulator data): `POST /ingest` median 1.3 ms, p95 about 2 ms (target < 20 ms). A 10-minute real-time run at 2 Hz stored 1200 of 1200 telemetry points and 1200 of 1200 detector points, including a roughly 90 s InfluxDB outage (`/health` reported `degraded`, the detector kept answering, the buffer flushed on recovery with 0 dropped).
 
+### Deployment
+
+Deployed on Dokploy (project **Hackathon**, compose `aether-g-backend`, built from branch `feat/edge-backend` with `edge-ai/docker-compose.yml`): API and docs at https://aether-be.fakhrads.dev (`/docs`, `/api/v1/health`). Secrets live in the Dokploy environment of that compose, not in git. `aether-g.fakhrads.dev` points at the same server but has nothing behind it until Edo's dashboard exists. oMLX is not configured on the deployment yet (`omlx: not_configured`, advisories use the deterministic fallback); set `AETHER_OMLX_BASE_URL` and `AETHER_OMLX_MODEL` there and redeploy. Note the server is public while oMLX lives on the team's NetBird network, so the deployed container needs NetBird access to reach it.
+
 ### Run it
 
 ```bash
