@@ -15,7 +15,7 @@ import logging
 import re
 import time
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Protocol
 
 from influxdb_client import Point, WritePrecision
@@ -285,10 +285,17 @@ class InfluxStore:
         except Exception as exc:
             raise StoreUnavailable(f"{type(exc).__name__}: {exc}"[:300]) from exc
 
-    def _base(self, measurement: str, compartment_id: str, range_s: float) -> str:
+    def _base(self, measurement: str, compartment_id: str, range_s: float, stop: datetime | None = None) -> str:
+        # Relative ranges are resolved per query; callers that merge queries pass one absolute `stop`
+        # so that every query sees identical window boundaries.
+        if stop is None:
+            rng = f"range(start: -{_flux_duration(range_s)})"
+        else:
+            start = stop - timedelta(seconds=range_s)
+            rng = f"range(start: {start.strftime('%Y-%m-%dT%H:%M:%S.%f')}Z, stop: {stop.strftime('%Y-%m-%dT%H:%M:%S.%f')}Z)"
         return (
             f"from(bucket: {_flux_str(self._bucket)})\n"
-            f"  |> range(start: -{_flux_duration(range_s)})\n"
+            f"  |> {rng}\n"
             f"  |> filter(fn: (r) => r._measurement == {_flux_str(measurement)} "
             f"and r.compartment_id == {_flux_str(compartment_id)})\n"
         )
@@ -308,18 +315,19 @@ class InfluxStore:
     async def series(self, compartment_id: str, range_s: float, every_s: float) -> list[dict[str, Any]]:
         """Downsampled telemetry for charts, merged with detector anomaly/confidence per window."""
         window = _flux_duration(every_s)
+        stop = self._now().astimezone(timezone.utc)
         tail = (
             "  |> group(columns: [\"_field\"])\n"
             "  |> aggregateWindow(every: {w}, fn: {fn}, createEmpty: false)\n"
             "  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n"
         )
         tel_q = (
-            self._base("telemetry", compartment_id, range_s)
+            self._base("telemetry", compartment_id, range_s, stop)
             + "  |> filter(fn: (r) => r._field != \"session_ts_ms\")\n"
             + tail.format(w=window, fn="mean")
         )
         det_q = (
-            self._base("detector", compartment_id, range_s)
+            self._base("detector", compartment_id, range_s, stop)
             + "  |> filter(fn: (r) => r._field == \"anomaly\" or r._field == \"dust_rejected\" or r._field == \"confidence\")\n"
             + tail.format(w=window, fn="max")
         )

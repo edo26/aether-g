@@ -68,7 +68,7 @@ def test_ratio_none_is_skipped_in_detector_point():
 def store():
     clock = Clock()
     backend = FakeBackend()
-    st = InfluxStore(backend, "telemetry", clock=clock, now=lambda: utc(2026, 11, 15))
+    st = InfluxStore(backend, "telemetry", clock=clock, now=lambda: utc(2026, 11, 16))
     st.clock = clock
     st.backend = backend
     return st
@@ -148,7 +148,11 @@ async def test_series_merges_telemetry_and_detector_rows(store):
     assert out == [{"time": t.isoformat(), "co_ppm": 1.2346, "tc1_c": 22.0}]
     tel_q, det_q = store.backend.queries
     assert 'r._measurement == "telemetry"' in tel_q and 'r.compartment_id == "AVIONICS_BAY_B2"' in tel_q
-    assert "range(start: -300s)" in tel_q and "aggregateWindow(every: 2s, fn: mean" in tel_q
+    assert "aggregateWindow(every: 2s, fn: mean" in tel_q
+    # both queries must use the same absolute range, or their window boundaries drift apart
+    import re
+    assert re.search(r"range\(start: 2026-11-15T23:55:00.000000Z, stop: 2026-11-16T00:00:00.000000Z\)", tel_q)
+    assert tel_q.split("|> range")[1].split("\n")[0] == det_q.split("|> range")[1].split("\n")[0]
     assert 'r._measurement == "detector"' in det_q and "fn: max" in det_q
 
 
