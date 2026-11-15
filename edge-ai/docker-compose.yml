@@ -1,5 +1,7 @@
 # docker compose up -d --build        (from edge-ai/, with a .env next to this file)
-# Works the same on Dokploy: set these variables in the project's environment instead of a .env file.
+# Locally docker-compose.override.yml is loaded automatically and publishes the ports.
+# Dokploy uses this file alone (no host ports; Traefik routes aether-be.fakhrads.dev to backend:8000)
+# and takes the variables from the project's environment instead of a .env file.
 services:
   influxdb:
     image: influxdb:2.7
@@ -21,9 +23,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    # 8086 is published only for local debugging; Dokploy/production should not expose it.
-    ports:
-      - "127.0.0.1:${AETHER_INFLUX_HOST_PORT:-8086}:8086"
 
   backend:
     build:
@@ -49,8 +48,6 @@ services:
       - backend-data:/data
     expose:
       - "8000"
-    ports:
-      - "${AETHER_PORT:-8090}:8000"
     mem_limit: 512m
 
 volumes:
