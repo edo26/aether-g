@@ -3,7 +3,10 @@ import copy
 import pytest
 from fastapi.testclient import TestClient
 
+from app.advisor.rag import Rag
 from app.main import create_app
+from app.storage.sqlite import Db
+from tests.fakes import FakeStore
 from tests.helpers import simulate
 
 H = {"X-Device-Token": "dev-device-token"}
@@ -15,7 +18,7 @@ def client(monkeypatch):
     from app.config import get_settings
 
     get_settings.cache_clear()
-    with TestClient(create_app()) as c:
+    with TestClient(create_app(store=FakeStore(), db=Db(':memory:'), rag=Rag())) as c:
         yield c
     get_settings.cache_clear()
 

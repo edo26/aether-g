@@ -56,6 +56,7 @@ class Result:
     features: Features
     previous_status: str
     reset_reason: str | None = None  # set when this sample started a new session
+    dust_event: bool = False  # this sample is the first of a dust rejection (marker just switched on)
 
     @property
     def status_changed(self) -> bool:
@@ -80,6 +81,7 @@ class _State:
     baseline: dict[str, float] | None = None
     latched: bool = False
     status: str = NOMINAL
+    prev_dust: bool = False
 
 
 def _channels(sample: Sample) -> dict[str, float]:
@@ -184,6 +186,9 @@ class Detector:
             dust = DUST_REJECTED if is_dust else NO_EVENT
 
         state.status = status
+        is_dust_now = dust == DUST_REJECTED
+        dust_event = is_dust_now and not state.prev_dust
+        state.prev_dust = is_dust_now
         return Result(
             status=status,
             confidence_score=confidence,
@@ -191,4 +196,5 @@ class Detector:
             features=features,
             previous_status=previous_status,
             reset_reason=reset_reason,
+            dust_event=dust_event,
         )

@@ -49,4 +49,4 @@ data/downloads/
 *.log
 
 # Backend runtime state
-data/aether.db*
+**/data/aether.db*

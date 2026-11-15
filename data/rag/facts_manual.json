@@ -1,0 +1,24 @@
+{
+  "title": "AETHER-G manual RAG facts (not in NASA PSI)",
+  "note": "Hand-curated, each entry quotes or closely paraphrases the cited source and was checked against it on the access date. Do not add uncited claims.",
+  "facts": [
+    {
+      "id": "NTRS-20240002981",
+      "title": "Preliminary Results from the Saffire VI Experiment (NASA NTRS)",
+      "text": "Saffire VI was conducted on an orbiting Cygnus spacecraft (preliminary results for one test of the last flight of the series). The flame heat release was compared with the overall temperature rise in the spacecraft and the change in the concentration of carbon dioxide and carbon monoxide. Overall, the temperature and pressure rise in the spacecraft were found to be less significant than the increase in carbon dioxide and carbon monoxide.",
+      "source": "NASA NTRS 20240002981, abstract (published 2024-03-08)",
+      "url": "https://ntrs.nasa.gov/citations/20240002981",
+      "license": "NTRS distribution: PUBLIC",
+      "accessed": "2026-11-15"
+    },
+    {
+      "id": "NIST-NASA-2018-SMOKE",
+      "title": "NIST/NASA Study Shows One Detector Doesn't 'Fit All' for Smoke in Spacecraft",
+      "text": "NASA and NIST researchers studied the smoke particles produced by five materials commonly used aboard crewed spacecraft and evaluated how well two traditional detection systems could detect them. Because not all of the particles were consistently detected, the researchers recommend that the next generation of spacecraft fire detectors must be improved and tested against smoke from relevant space materials. In microgravity there is no buoyancy, so smoke often aggregates into large particles or long chains that spread in all directions, and smoke detectors on the ISS and other modern spacecraft are placed within the ventilation system.",
+      "source": "NIST news article, 2018-05-01, describing a Fire Safety Journal paper by NASA and NIST researchers",
+      "url": "https://www.nist.gov/news-events/news/2018/05/nistnasa-study-shows-one-detector-doesnt-fit-all-smoke-spacecraft",
+      "license": "NIST website content (US government work); cited, not redistributed",
+      "accessed": "2026-11-15"
+    }
+  ]
+}

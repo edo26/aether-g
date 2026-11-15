@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
 
 from app.config import Settings, get_settings
 from app.contract import IngestBatch, Sample
-from app.detector import Detector, Result
+from app.detector import Result
 
 router = APIRouter(prefix="/api/v1", tags=["ingest"])
 
@@ -63,7 +63,7 @@ async def ingest(
     ],
     x_aether_source: Annotated[Source, Header()] = "jetson",
 ):
-    detector: Detector = request.app.state.detector
+    pipeline = request.app.state.pipeline
     if isinstance(payload, IngestBatch):
-        return {"results": [_result_body(s, detector.process(s)) for s in payload.items]}
-    return _result_body(payload, detector.process(payload))
+        return {"results": [_result_body(s, pipeline.handle(s, x_aether_source)) for s in payload.items]}
+    return _result_body(payload, pipeline.handle(payload, x_aether_source))
