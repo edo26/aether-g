@@ -15,10 +15,11 @@ from app.detector import Detector
 from app.events import EventLog
 from app.live import LiveState
 from app.pipeline import Pipeline
-from app.routers import advisor, dashboard, health, ingest
+from app.routers import advisor, dashboard, health, ingest, thermal
 from app.storage.influx import InfluxBackend, InfluxStore
 from app.storage.sqlite import Db
 from app.stream import Broker
+from app.thermal import ThermalState
 
 HEALTH_EVENT_PERIOD_S = 10.0
 
@@ -75,6 +76,7 @@ def create_app(*, store=None, db=None, rag=None, llm=None) -> FastAPI:
     app.state.store = store or InfluxStore(InfluxBackend(settings), settings.influx_bucket)
     app.state.broker = Broker()
     app.state.live = LiveState()
+    app.state.thermal = ThermalState()
     app.state.pipeline = Pipeline(app.state.detector, app.state.store, app.state.broker, app.state.live)
 
     if llm is None and settings.omlx_configured:
@@ -94,7 +96,7 @@ def create_app(*, store=None, db=None, rag=None, llm=None) -> FastAPI:
     if hasattr(app.state.store, "on_outage"):
         app.state.store.on_outage.append(events.on_outage)
 
-    for r in (ingest.router, dashboard.router, advisor.router, health.router):
+    for r in (ingest.router, thermal.router, dashboard.router, advisor.router, health.router):
         app.include_router(r)
     return app
 

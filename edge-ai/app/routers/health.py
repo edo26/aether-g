@@ -22,6 +22,8 @@ def build_health(app) -> dict[str, Any]:
         "omlx": llm.health() if hasattr(llm, "health") else {"status": "not_configured"},
         "advisor": {"rag_facts": len(app.state.rag.facts), "dropped_triggers": app.state.worker.dropped},
         "compartments": ingest,
+        "thermal": {cid: {"last_frame_age_s": app.state.thermal.age_s(e), "source": e.source, "sensor": e.frame.sensor}
+                    for cid, e in sorted(app.state.thermal.all().items())},
         "sse_subscribers": app.state.broker.subscribers,
     }
 

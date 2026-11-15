@@ -2,7 +2,12 @@
 """Fake Jetson: feed simulator output into POST /api/v1/ingest and summarise what came back.
 
   uv run python tools/feed.py --scenario smoldering --speed 20
+  uv run python tools/feed.py --scenario smoldering --thermal      # also send synthetic MLX90640 frames
   python3 ../simulator/simulator.py --scenario dust | uv run python tools/feed.py --stdin
+  cat /dev/ttyACM0 | uv run python tools/feed.py --stdin --speed 0 --source jetson   # ESP32 serial bridge
+
+In --stdin mode a line with "pixels_c" is a thermal camera frame and goes to POST /api/v1/thermal;
+every other JSON line goes to /api/v1/ingest. Lines that are not JSON (boot logs) are skipped.
 
 --speed N sends N times faster than real time (timestamps stay logical, so detector maths is
 unchanged). Defaults come from AETHER_* env vars / .env.
@@ -43,8 +48,38 @@ def generate(scenario: str, interval_ms: int, duration_s: float):
 def read_stdin():
     for line in sys.stdin:
         line = line.strip()
-        if line:
-            yield json.loads(line)
+        if not line:
+            continue
+        try:
+            obj = json.loads(line)
+        except ValueError:
+            print(f"skipped non-JSON line: {line[:80]}", file=sys.stderr)
+            continue
+        if isinstance(obj, dict):
+            yield obj
+
+
+PROBE_X = (0.15, 0.5, 0.85)  # same schematic probe positions as the dashboard
+
+
+def synthetic_frame(sample: dict) -> dict:
+    """A clearly synthetic 32x24 MLX90640-shaped frame consistent with the sample's probes and IR max."""
+    import math
+    import random
+
+    t = sample["telemetry"]
+    tcs, peak = t["thermocouples_c"], t["max_ir_temp_c"]
+    base = min(tcs)
+    weights = [max(v - base, 0.0) ** 2 for v in tcs]
+    cx = sum(w * x for w, x in zip(weights, PROBE_X)) / sum(weights) if sum(weights) > 0 else 0.5
+    px = []
+    for y in range(24):
+        for x in range(32):
+            u, v = x / 31, y / 23
+            g = math.exp(-(((u - cx) / 0.13) ** 2 + ((v - 0.5) / 0.22) ** 2))
+            px.append(round(base + (peak - base) * g + random.uniform(-0.15, 0.15), 2))
+    return {"timestamp_ms": sample["timestamp_ms"], "compartment_id": sample["compartment_id"],
+            "sensor": "MLX90640", "width": 32, "height": 24, "pixels_c": px}
 
 
 def env_default(name: str, fallback: str) -> str:
@@ -71,6 +106,7 @@ def main() -> int:
     p.add_argument("--no-detector", action="store_true", help="omit stage1_detector like a bare Jetson")
     p.add_argument("--source", default="simulator", choices=("jetson", "simulator", "replay"))
     p.add_argument("--quiet", action="store_true")
+    p.add_argument("--thermal", action="store_true", help="also send a synthetic MLX90640 frame per sample")
     a = p.parse_args()
 
     samples = read_stdin() if a.stdin else generate(a.scenario, a.interval_ms, a.duration_s)
@@ -82,8 +118,27 @@ def main() -> int:
     dust_samples = n = errors = mismatches = 0
     prev_ts = None
     consecutive_errors = 0
+    frames_sent = 0
     with httpx.Client(base_url=a.url, headers=headers, timeout=5.0) as client:
         for sample in samples:
+            if "pixels_c" in sample:  # thermal camera frame from the serial stream
+                try:
+                    r = client.post("/api/v1/thermal", json=sample)
+                    if r.status_code != 200:
+                        print(f"thermal HTTP {r.status_code}: {r.text[:200]}", file=sys.stderr)
+                        errors += 1
+                    else:
+                        frames_sent += 1
+                except httpx.HTTPError as exc:
+                    print(f"thermal POST failed: {exc}", file=sys.stderr)
+                    errors += 1
+                continue
+            if a.thermal:
+                try:
+                    if client.post("/api/v1/thermal", json=synthetic_frame(sample)).status_code == 200:
+                        frames_sent += 1
+                except httpx.HTTPError as exc:
+                    print(f"thermal POST failed: {exc}", file=sys.stderr)
             provisional = sample.get("stage1_detector")
             if a.no_detector:
                 sample = {k: v for k, v in sample.items() if k != "stage1_detector"}
@@ -126,7 +181,7 @@ def main() -> int:
                 time.sleep(max(sample["timestamp_ms"] - prev_ts, 0) / 1000.0 / a.speed)
             prev_ts = sample["timestamp_ms"]
 
-    print(f"\nsent={n} errors={errors} final_status={last_status}")
+    print(f"\nsent={n} thermal_frames={frames_sent} errors={errors} final_status={last_status}")
     if latencies:
         qs = statistics.quantiles(latencies, n=20) if len(latencies) >= 20 else [max(latencies)] * 19
         print(f"POST latency ms: median={statistics.median(latencies):.1f} p95={qs[18]:.1f} max={max(latencies):.1f}")
